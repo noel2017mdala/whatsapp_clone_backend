@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const UserSchema = require("../Schema/UserSchema");
+const MessagesSchema = require("../Schema/MessageSchema");
 const User = mongoose.model("User", UserSchema);
+const Messages = mongoose.model("Messages", MessagesSchema);
 const { getUserMessages } = require("./MessageModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -92,7 +94,6 @@ const addContact = async (id, body, cb) => {
 
 //gets all users in the users contact list that sent a message
 const getUser = async (id, cb) => {
-  console.log("ndafika");
   let userCollection = [];
   let checkIfValid = mongoose.Types.ObjectId.isValid(id);
   if (checkIfValid) {
@@ -120,15 +121,40 @@ const getUser = async (id, cb) => {
         })
       );
       let awaitResult = await test;
-      cb(awaitResult);
+
+      let holdLastMessages = [];
+
+      let demo = Promise.all(
+        awaitResult.map(async (e) => {
+          if (e) {
+            const filterMessage = await Messages.find({
+              $or: [
+                { from: id, to: e._id },
+                { from: e._id, to: id },
+              ],
+            });
+
+            if (filterMessage) {
+              let data = filterMessage[filterMessage.length - 1];
+              let newObj = {
+                userDetails: e,
+                userLastMessage: data,
+              };
+
+              holdLastMessages.push(newObj);
+            }
+            return holdLastMessages;
+          }
+        })
+      );
+
+      let data = await demo;
+
+      cb(data[data.length - 1]);
     } else {
       cb(false);
     }
   }
-};
-
-const greatUser = () => {
-  console.log("Hello World");
 };
 
 module.exports = {

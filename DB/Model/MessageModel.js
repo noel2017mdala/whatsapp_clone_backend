@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { createUserLastMessage } = require("../../helper/createUserLastMessage");
 const MessagesSchema = require("../Schema/MessageSchema");
 const UserSchema = require("../Schema/UserSchema");
 const User = mongoose.model("User", UserSchema);
@@ -13,21 +12,22 @@ const createMessage = async (body) => {
 
   insertMessage = await insertMessage.save();
   if (insertMessage) {
-    let ids = [body.from, body.to];
-    let updateUsersLast = User.updateMany(
-      { _id: { $in: ids } },
-      { $set: { UserLastMessage: insertMessage._id } },
-      { multi: true },
-      function (err, records) {
-        if (err) {
-          return false;
-        }
-      }
-    );
+    // let ids = [body.from, body.to];
+    // let updateUsersLast = User.updateMany(
+    //   { _id: { $in: ids } },
+    //   { $set: { UserLastMessage: insertMessage._id } },
+    //   { multi: true },
+    //   function (err, records) {
+    //     if (err) {
+    //       return false;
+    //     }
+    //   }
+    // );
 
-    if (updateUsersLast) {
-      return insertMessage;
-    }
+    // if (updateUsersLast) {
+    //   return insertMessage;
+    // }
+    return insertMessage;
   }
 };
 
@@ -50,21 +50,48 @@ const getUserMessages = async (user1, user2, cb) => {
 
 const getLastMessage = async (sender, receiver) => {
   const filterMessage = await Messages.find({
-    from: sender,
-    to: receiver,
+    $or: [
+      { from: sender, to: receiver },
+      { from: receiver, to: sender },
+    ],
   });
 
   if (filterMessage) {
-    // let data = filterMessage[filterMessage.length - 1];
-    // console.log(filterMessage);
+    let data = filterMessage[filterMessage.length - 1];
 
-    return filterMessage;
+    return data;
   }
   return;
+};
+
+let getAllUserMessages = async (sender, receiver) => {
+  const filterMessage = await Messages.find({
+    $or: [
+      { from: sender, to: receiver },
+      { from: receiver, to: sender },
+    ],
+  });
+
+  if (filterMessage) {
+    let user = await User.findById(receiver).select(
+      "-email -password -groups -media -contactList -country -unReadMessages -unregisteredContacts"
+    );
+
+    if (user) {
+      let userObj = {
+        message: filterMessage,
+        user,
+      };
+      return userObj;
+    } else {
+      return false;
+    }
+  }
 };
 module.exports = {
   createMessage,
   getAllMessages,
   getLastMessage,
   getUserMessages,
+  getAllUserMessages,
 };

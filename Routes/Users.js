@@ -50,4 +50,5 @@ userRouter.get("/getUser/:id", async (req, res) => {
     }
   });
 });
+
 module.exports = userRouter;

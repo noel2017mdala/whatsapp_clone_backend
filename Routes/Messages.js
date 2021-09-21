@@ -3,6 +3,7 @@ const {
   createMessage,
   getAllMessages,
   getLastMessage,
+  getAllUserMessages,
 } = require("../DB/Model/MessageModel");
 const messagesRouter = express.Router();
 const fullDate = require("../helper/dateHelper");
@@ -40,6 +41,22 @@ messagesRouter.get(
     } else {
       res.status(400).json({
         message: "User not found",
+      });
+    }
+  }
+);
+
+messagesRouter.get(
+  "/getAllMessages/:senderId/:receiverId",
+  async (req, res) => {
+    let { senderId, receiverId } = req.params;
+    let getAllMessages = await getAllUserMessages(senderId, receiverId);
+
+    if (getAllMessages) {
+      res.status(200).send(getAllMessages);
+    } else {
+      res.status(400).json({
+        message: "user not found",
       });
     }
   }
