@@ -3,7 +3,7 @@ const {
   createUser,
   addContact,
   getUser,
-  updateLastMassage,
+  login,
 } = require("../DB/Model/UserModel");
 const userRouter = express.Router();
 
@@ -12,6 +12,7 @@ userRouter.post("/createUser", async (req, res) => {
   if (body) {
     await createUser(body, (result) => {
       if (result) {
+        console.log(result);
         res.status(200).send(result);
       } else {
         res.status(400).json({
@@ -19,6 +20,42 @@ userRouter.post("/createUser", async (req, res) => {
           result,
         });
       }
+    });
+  }
+});
+
+userRouter.post("/login", async (req, res) => {
+  let body = req.body;
+  const loinDetails = await login(body);
+  if (loinDetails) {
+    let { getUser, token } = loinDetails;
+    let [header, payload, signature] = token.split(".");
+    let headers = {
+      header,
+      payload,
+    };
+    res
+      .status(200)
+      .cookie("userPayLoad", headers, {
+        sameSite: "strict",
+        path: "/",
+        expires: new Date(new Date().getTime() + 1000 * 10000),
+      })
+      .cookie("userData", getUser, {
+        sameSite: "strict",
+        path: "/",
+        expires: new Date(new Date().getTime() + 1000 * 10000),
+      })
+      .cookie("signature", signature, {
+        sameSite: "strict",
+        path: "/",
+        expires: new Date(new Date().getTime() + 1000 * 10000),
+        httpOnly: true,
+      })
+      .send("User");
+  } else {
+    res.status(400).json({
+      Message: "Login Failed",
     });
   }
 });

@@ -8,26 +8,28 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const createUser = async (userInfo, cb) => {
-  let { name, email, password, phoneNumber, contactList } = userInfo;
+  let { name, email, password, phoneNumber } = userInfo;
   if (name !== "" && email !== "" && password !== "" && phoneNumber !== "") {
-    let checkIfUserExist = await User.findOne({ phoneNumber: phoneNumber });
+    let checkIfUserExist = await User.find({
+      $or: [{ phoneNumber: phoneNumber }, { email: email }],
+    });
     let holdContact = [];
     let unregisteredContacts = [];
 
     if (!checkIfUserExist) {
-      contactList.map(async (contact) => {
-        let getContact = await User.findOne({ phoneNumber: contact.contact });
-        if (getContact) {
-          holdContact.push(getContact._id);
-        } else {
-          unregisteredContacts.push(contact.contact);
-        }
-      });
+      // contactList.map(async (contact) => {
+      //   let getContact = await User.findOne({ phoneNumber: contact.contact });
+      //   if (getContact) {
+      //     holdContact.push(getContact._id);
+      //   } else {
+      //     unregisteredContacts.push(contact.contact);
+      //   }
+      // });
 
       let user = new User({
         ...userInfo,
-        contactList: holdContact,
-        unregisteredContacts,
+        // contactList: holdContact,
+        // unregisteredContacts,
         password: await bcrypt.hash(password, 12),
       });
       user = await user.save();
@@ -39,6 +41,29 @@ const createUser = async (userInfo, cb) => {
     } else {
       cb(false);
     }
+  }
+};
+
+const login = async (userData) => {
+  let getUser = await User.findOne({ phoneNumber: userData.email });
+
+  if (getUser && (await bcrypt.compare(userData.password, getUser.password))) {
+    let secret = process.env.TOKEN_SECRET;
+    const token = jwt.sign(
+      {
+        userId: getUser.id,
+      },
+      secret,
+      {
+        expiresIn: "1w",
+      }
+    );
+    return {
+      getUser,
+      token,
+    };
+  } else {
+    return false;
   }
 };
 
@@ -161,4 +186,5 @@ module.exports = {
   createUser,
   addContact,
   getUser,
+  login,
 };
