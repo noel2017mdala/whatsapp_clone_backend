@@ -45,10 +45,24 @@ const createUser = async (userInfo, cb) => {
 };
 
 const login = async (userData) => {
-  let getUser = await User.findOne({ phoneNumber: userData.email });
+  let getUser = await User.findOne({ phoneNumber: userData.email }).select(
+    "-groups -contactList  -unReadMessages -contactList -unregisteredContacts -groups -media -unreadMessages -UserLastMessage"
+  );
+
+  // console.log(getUser);
 
   if (getUser && (await bcrypt.compare(userData.password, getUser.password))) {
     let secret = process.env.TOKEN_SECRET;
+
+    let { name, email, phoneNumber, _id, profileImage } = getUser;
+    let userDetails = {
+      name,
+      email,
+      phoneNumber,
+      _id,
+      profileImage,
+    };
+
     const token = jwt.sign(
       {
         userId: getUser.id,
@@ -59,7 +73,7 @@ const login = async (userData) => {
       }
     );
     return {
-      getUser,
+      userDetails,
       token,
     };
   } else {

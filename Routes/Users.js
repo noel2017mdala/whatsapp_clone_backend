@@ -28,7 +28,8 @@ userRouter.post("/login", async (req, res) => {
   let body = req.body;
   const loinDetails = await login(body);
   if (loinDetails) {
-    let { getUser, token } = loinDetails;
+    let { userDetails, token } = loinDetails;
+
     let [header, payload, signature] = token.split(".");
     let headers = {
       header,
@@ -41,7 +42,7 @@ userRouter.post("/login", async (req, res) => {
         path: "/",
         expires: new Date(new Date().getTime() + 1000 * 10000),
       })
-      .cookie("userData", getUser, {
+      .cookie("userData", userDetails, {
         sameSite: "strict",
         path: "/",
         expires: new Date(new Date().getTime() + 1000 * 10000),
