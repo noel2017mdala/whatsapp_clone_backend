@@ -2,8 +2,13 @@ const express = require("express");
 let cookieParser = require("cookie-parser");
 const app = express();
 const http = require("http").createServer(app);
-const socketIo = require("./socket/index");
-const io = socketIo(http);
+const io = require("socket.io")(http);
+const {
+  updateUserActivity,
+  getUserActivity,
+  removeUserLastSeen,
+} = require("./DB/Model/UserModel");
+
 require("dotenv/config");
 const morgan = require("morgan");
 const cors = require("cors");
@@ -17,9 +22,30 @@ const Messages = require("./Routes/Messages");
 //Io configurations
 io.on("connection", (socket) => {
   console.log("User Connected successfully");
-  socket.on("sendMessage", (msg) => {
-    io.emit("ReceiveMsg", msg);
+
+  socket.on("disconnect", async function () {
+    let today = new Date();
+    let time = today.getHours() + ":" + today.getMinutes();
+    console.log(this.id);
+    await removeUserLastSeen(this.id);
   });
+});
+
+//socket conn
+io.use(async (socket, next) => {
+  let today = new Date();
+  let time = today.getHours() + ":" + today.getMinutes();
+  try {
+    await updateUserActivity({
+      userId: socket.request._query["userId"],
+      socketId: socket.id,
+      lastSeenTime: time,
+    });
+
+    next();
+  } catch (error) {
+    console.log("Error");
+  }
 });
 
 //Middleware

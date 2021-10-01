@@ -196,9 +196,70 @@ const getUser = async (id, cb) => {
   }
 };
 
+const updateUserActivity = async (socketData) => {
+  if (mongoose.Types.ObjectId.isValid(socketData.userId)) {
+    let id = socketData.userId;
+
+    const updateUserActivity = await User.findByIdAndUpdate(
+      id,
+      {
+        userActivity: {
+          userId: id,
+          socketId: socketData.socketId,
+          lastSeenTime: socketData.lastSeenTime,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (updateUserActivity) {
+      console.log(
+        `User ${id} activity updated successfully ${socketData.socketId}`
+      );
+    } else {
+      console.log("Failed to update user");
+    }
+  }
+};
+
+const removeUserLastSeen = async (socketId) => {
+  let today = new Date();
+  let time = today.getHours() + ":" + today.getMinutes();
+
+  let getUser = await User.findOne({ "userActivity.socketId": socketId });
+  console.log(getUser._id);
+  const updateUserActivity = await User.findByIdAndUpdate(
+    getUser._id,
+    {
+      userActivity: {
+        userId: getUser._id,
+        socketId: null,
+        lastSeenTime: time,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  if (updateUserActivity) {
+    console.log("Last seen Updated successfully");
+  }
+};
+
+const getUserActivity = async (userActivityData) => {
+  let findUserActivity = await User.findOne({ _id: userActivityData.userId });
+  return findUserActivity;
+};
+
 module.exports = {
   createUser,
   addContact,
   getUser,
   login,
+  updateUserActivity,
+  getUserActivity,
+  removeUserLastSeen,
 };

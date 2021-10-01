@@ -64,6 +64,12 @@ const User = new Schema({
     },
   ],
 
+  userActivity: [
+    {
+      type: Object,
+    },
+  ],
+
   UserLastMessage: [
     {
       type: mongoose.Schema.Types.ObjectId,
