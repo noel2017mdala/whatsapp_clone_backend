@@ -4,10 +4,13 @@ const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 const {
+  getUserSession,
   updateUserActivity,
   getUserActivity,
   removeUserLastSeen,
 } = require("./DB/Model/UserModel");
+
+const { createMessage } = require("./DB/Model/MessageModel");
 
 require("dotenv/config");
 const morgan = require("morgan");
@@ -24,10 +27,31 @@ io.on("connection", (socket) => {
   console.log("User Connected successfully");
 
   socket.on("disconnect", async function () {
-    let today = new Date();
-    let time = today.getHours() + ":" + today.getMinutes();
     console.log(this.id);
     await removeUserLastSeen(this.id);
+  });
+
+  socket.on("message-sent", async (message) => {
+    let userSession = await getUserSession(message.to);
+    if (userSession) {
+      let create = await createMessage({
+        ...message,
+        messageStatus: "received",
+      });
+
+      if (create) {
+        console.log("Demo");
+        socket.to(userSession).emit("receive-message", message);
+      }
+    }
+
+    return;
+    console.log(`Message ${message} Received`);
+    if (room === "") {
+      socket.broadcast.emit("receive-message", message);
+    } else {
+      socket.to(room).emit("receive-message", message);
+    }
   });
 });
 

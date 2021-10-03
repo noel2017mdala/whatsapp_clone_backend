@@ -229,29 +229,41 @@ const removeUserLastSeen = async (socketId) => {
   let time = today.getHours() + ":" + today.getMinutes();
 
   let getUser = await User.findOne({ "userActivity.socketId": socketId });
-  console.log(getUser._id);
-  const updateUserActivity = await User.findByIdAndUpdate(
-    getUser._id,
-    {
-      userActivity: {
-        userId: getUser._id,
-        socketId: null,
-        lastSeenTime: time,
+  // console.log(getUser._id);
+  if (getUser) {
+    const updateUserActivity = await User.findByIdAndUpdate(
+      getUser._id,
+      {
+        userActivity: {
+          userId: getUser._id,
+          socketId: null,
+          lastSeenTime: time,
+        },
       },
-    },
-    {
-      new: true,
-    }
-  );
+      {
+        new: true,
+      }
+    );
 
-  if (updateUserActivity) {
-    console.log("Last seen Updated successfully");
+    if (updateUserActivity) {
+      console.log("Last seen Updated successfully");
+    }
   }
 };
 
 const getUserActivity = async (userActivityData) => {
   let findUserActivity = await User.findOne({ _id: userActivityData.userId });
   return findUserActivity;
+};
+
+const getUserSession = async (id) => {
+  let getUser = await User.findOne({ _id: id });
+  if (getUser) {
+    let [{ socketId }] = getUser.userActivity;
+    return socketId;
+  } else {
+    return null;
+  }
 };
 
 module.exports = {
@@ -262,4 +274,5 @@ module.exports = {
   updateUserActivity,
   getUserActivity,
   removeUserLastSeen,
+  getUserSession,
 };
