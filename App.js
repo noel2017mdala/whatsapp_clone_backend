@@ -31,27 +31,26 @@ io.on("connection", (socket) => {
     await removeUserLastSeen(this.id);
   });
 
-  socket.on("message-sent", async (message) => {
+  socket.on("message-sent", async (message, data) => {
     let userSession = await getUserSession(message.to);
-    if (userSession) {
-      let create = await createMessage({
-        ...message,
-        messageStatus: "received",
-      });
+    // console.log(userSession);
 
-      if (create) {
+    if (userSession) {
+      // let create = await createMessage({
+      //   ...message,
+      //   messageStatus: "received",
+      // });
+      if (true) {
         console.log("Demo");
-        socket.to(userSession).emit("receive-message", message);
+        socket.to(userSession).emit("receive-message", message, data);
       }
     }
-
     return;
-    console.log(`Message ${message} Received`);
-    if (room === "") {
-      socket.broadcast.emit("receive-message", message);
-    } else {
-      socket.to(room).emit("receive-message", message);
-    }
+  });
+
+  socket.on("refresh-user", async (message, data) => {
+    console.log(`user can now refresh ${socket.id}`);
+    socket.to(socket.id).emit("receive-message", message, data);
   });
 });
 
