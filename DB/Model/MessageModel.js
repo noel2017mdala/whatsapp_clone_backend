@@ -4,30 +4,88 @@ const UserSchema = require("../Schema/UserSchema");
 const User = mongoose.model("User", UserSchema);
 const Messages = mongoose.model("Messages", MessagesSchema);
 const moment = require("moment");
+const io = require("../../socket/index");
 
 const createMessage = async (body) => {
   let insertMessage = new Messages({
     ...body,
   });
-
   insertMessage = await insertMessage.save();
   if (insertMessage) {
-    // let ids = [body.from, body.to];
-    // let updateUsersLast = User.updateMany(
-    //   { _id: { $in: ids } },
-    //   { $set: { UserLastMessage: insertMessage._id } },
-    //   { multi: true },
-    //   function (err, records) {
-    //     if (err) {
-    //       return false;
-    //     }
-    //   }
-    // );
+    let findReceiveUser = await User.findOne({
+      _id: body.from,
+      "unreadMessages.sender": body.to,
+    }).select("unreadMessages");
 
-    // if (updateUsersLast) {
-    //   return insertMessage;
-    // }
-    return insertMessage;
+    if (findReceiveUser) {
+      let messageCounter = findReceiveUser.unreadMessages[0].count;
+
+      let updateUserCounter = await User.updateOne(
+        { "unreadMessages.sender": body.to },
+        {
+          $set: {
+            "unreadMessages.$.count": messageCounter + 1,
+          },
+        }
+      );
+      if (updateUserCounter) {
+        return updateUserCounter;
+        console.log("updated unreadMessage successfully");
+        // console.log(updateUserCounter);
+      }
+    } else {
+      let findReceiveUser = await User.findOne({
+        _id: body.from,
+      }).select("unreadMessages");
+
+      // console.log(findReceiveUser);
+      // return;
+      // let messageCounter = findReceiveUser.unreadMessages[0].count;
+      // console.log(findReceiveUser);
+      // return;
+      let updateUserReadMessages = await User.findByIdAndUpdate(
+        findReceiveUser._id,
+        {
+          $addToSet: {
+            unreadMessages: {
+              sender: body.to,
+              count: 1,
+            },
+          },
+        },
+        {
+          new: true,
+        }
+      );
+
+      if (updateUserReadMessages) {
+        return updateUserReadMessages;
+      }
+    }
+    // console.log(findReceiveUser);
+    return;
+  }
+};
+
+const setUnread = async ({ userId, senderId }) => {
+  let findReceiveUser = await User.findOne({
+    _id: userId,
+    "unreadMessages.sender": senderId,
+  }).select("unreadMessages");
+
+  if (findReceiveUser) {
+    let updateUserCounter = await User.updateOne(
+      { "unreadMessages.sender": senderId },
+      {
+        $set: {
+          "unreadMessages.$.count": 0,
+        },
+      }
+    );
+
+    if (updateUserCounter) {
+      return updateUserCounter;
+    }
   }
 };
 
@@ -94,4 +152,5 @@ module.exports = {
   getLastMessage,
   getUserMessages,
   getAllUserMessages,
+  setUnread,
 };

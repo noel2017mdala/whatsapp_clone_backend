@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { type } = require("os");
 const { Schema } = mongoose;
 
 const User = new Schema({
@@ -22,10 +23,11 @@ const User = new Schema({
     type: Number,
     required: true,
   },
-  unReadMessages: {
-    type: Number,
-    default: 0,
-  },
+  unReadMessages: [
+    {
+      type: Object,
+    },
+  ],
   contactList: [
     {
       type: mongoose.Schema.Types.ObjectId,

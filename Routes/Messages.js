@@ -4,6 +4,7 @@ const {
   getAllMessages,
   getLastMessage,
   getAllUserMessages,
+  setUnread,
 } = require("../DB/Model/MessageModel");
 const messagesRouter = express.Router();
 const fullDate = require("../helper/dateHelper");
@@ -20,6 +21,19 @@ messagesRouter.post("/createMessage", async (req, res) => {
   }
 });
 
+messagesRouter.post("/setUserUnread", async (req, res) => {
+  let body = req.body;
+
+  let setUnreadChat = await setUnread(body);
+
+  if (setUnreadChat) {
+    res.status(200).send(setUnreadChat);
+  } else {
+    res.status(400).json({
+      message: "failed to update chat",
+    });
+  }
+});
 messagesRouter.get("/getMessages", async (req, res) => {
   let getMessages = await getAllMessages();
   if (getMessages) {

@@ -46,7 +46,7 @@ const createUser = async (userInfo, cb) => {
 
 const login = async (userData) => {
   let getUser = await User.findOne({ phoneNumber: userData.email }).select(
-    "-groups -contactList  -unReadMessages -contactList -unregisteredContacts -groups -media -unreadMessages -UserLastMessage"
+    "-groups -contactList  -unReadMessages -contactList -unregisteredContacts -groups -media  -UserLastMessage"
   );
 
   // console.log(getUser);
@@ -54,13 +54,15 @@ const login = async (userData) => {
   if (getUser && (await bcrypt.compare(userData.password, getUser.password))) {
     let secret = process.env.TOKEN_SECRET;
 
-    let { name, email, phoneNumber, _id, profileImage } = getUser;
+    let { name, email, phoneNumber, _id, profileImage, unreadMessages } =
+      getUser;
     let userDetails = {
       name,
       email,
       phoneNumber,
       _id,
       profileImage,
+      unreadMessages,
     };
 
     const token = jwt.sign(
@@ -266,6 +268,19 @@ const getUserSession = async (id) => {
   }
 };
 
+const getUserBySocket = async (socket) => {
+  let getUser = await User.findOne({ "userActivity.socketId": socket });
+  console.log(getUser.userActivity);
+  if (getUser) {
+    return {
+      socketId: getUser.userActivity,
+      id: getUser._id,
+    };
+  } else {
+    return null;
+  }
+};
+
 module.exports = {
   createUser,
   addContact,
@@ -275,4 +290,5 @@ module.exports = {
   getUserActivity,
   removeUserLastSeen,
   getUserSession,
+  getUserBySocket,
 };

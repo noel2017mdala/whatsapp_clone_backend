@@ -8,6 +8,7 @@ const {
   updateUserActivity,
   getUserActivity,
   removeUserLastSeen,
+  getUserBySocket,
 } = require("./DB/Model/UserModel");
 
 const { createMessage } = require("./DB/Model/MessageModel");
@@ -36,22 +37,31 @@ io.on("connection", (socket) => {
     // console.log(userSession);
 
     if (userSession) {
-      // let create = await createMessage({
-      //   ...message,
-      //   messageStatus: "received",
-      // });
-      if (true) {
-        console.log("Demo");
+      let create = await createMessage({
+        ...message,
+        messageStatus: "received",
+      });
+      if (create) {
         socket.to(userSession).emit("receive-message", message, data);
+        socket.emit("demo", message.from, data);
       }
     }
-    return;
   });
 
-  socket.on("refresh-user", async (message, data) => {
-    console.log(`user can now refresh ${socket.id}`);
-    socket.to(socket.id).emit("receive-message", message, data);
+  socket.on("request-demo", (data) => {
+    console.log("request received");
   });
+  // socket.on("refresh-user", async (message, data) => {
+  //   console.log(socket.id);
+  //   let getUserId = await getUserBySocket(socket.id);
+  //   if (getUserId) {
+  //     console.log("About to dispatch");
+  //     // socket.to(getUserId.socketId[0].socketId).emit("user-emit", getUserId);
+  //     io.to(socket.id).emit("user-emit", "Your message");
+  //   }
+  //   // console.log(`user can now refresh ${socket.id}`);
+  //   // socket.to(socket.id).emit("user-emit", message, data);
+  // });
 });
 
 //socket conn
