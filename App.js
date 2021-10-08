@@ -50,6 +50,9 @@ io.on("connection", (socket) => {
 
   socket.on("request-demo", (data) => {
     console.log("request received");
+    socket.emit("re-fresh-contact", {
+      name: "Abel",
+    });
   });
   // socket.on("refresh-user", async (message, data) => {
   //   console.log(socket.id);
