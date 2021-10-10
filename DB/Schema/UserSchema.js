@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { type } = require("os");
 const { Schema } = mongoose;
 
 const User = new Schema({
@@ -17,7 +16,9 @@ const User = new Schema({
   },
   profileImage: {
     type: String,
-    default: `http://localhost:${process.env.PORT}/public/userProfiles/defaultProfile.jpg`,
+    default: `http://localhost:${
+      process.env.PORT || 8000
+    }/public/userProfiles/defaultProfile.jpg`,
   },
   phoneNumber: {
     type: Number,

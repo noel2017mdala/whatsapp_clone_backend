@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken");
 const createUser = async (userInfo, cb) => {
   let { name, email, password, phoneNumber } = userInfo;
   if (name !== "" && email !== "" && password !== "" && phoneNumber !== "") {
-    let checkIfUserExist = await User.find({
+    let checkIfUserExist = await User.findOne({
       $or: [{ phoneNumber: phoneNumber }, { email: email }],
     });
     let holdContact = [];
@@ -86,6 +86,7 @@ const login = async (userData) => {
 const addContact = async (id, body, cb) => {
   let checkIfValid = mongoose.Types.ObjectId.isValid(id);
   let user = await User.findById(id);
+
   if (checkIfValid && user) {
     let contactList = body.contactList;
     let holdContact = [];
@@ -260,7 +261,7 @@ const getUserActivity = async (userActivityData) => {
 
 const getUserSession = async (id) => {
   let getUser = await User.findOne({ _id: id });
-  if (getUser) {
+  if (getUser && getUser.userActivity) {
     let [{ socketId }] = getUser.userActivity;
     return socketId;
   } else {

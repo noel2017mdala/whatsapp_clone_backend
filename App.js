@@ -80,7 +80,7 @@ io.use(async (socket, next) => {
 
     next();
   } catch (error) {
-    console.log("Error");
+    console.log("Error failed to assign token to user");
   }
 });
 
@@ -101,6 +101,7 @@ app.use(
   "/public/userProfiles",
   express.static(__dirname + "/public/userProfiles")
 );
+app.use("/public/audio", express.static(__dirname + "/public/audio"));
 //Routes
 app.use(`${process.env.API_URL}/users`, User);
 app.use(`${process.env.API_URL}/chat`, Messages);

@@ -84,7 +84,28 @@ const setUnread = async ({ userId, senderId }) => {
     );
 
     if (updateUserCounter) {
-      return updateUserCounter;
+      const filterMessage = await Messages.find({
+        $or: [
+          { from: userId, to: senderId },
+          { from: senderId, to: userId },
+        ],
+      });
+
+      let lastMessage = filterMessage[filterMessage.length - 1];
+      // console.log(lastMessage._id);
+      let getMessage = await Messages.findByIdAndUpdate(
+        lastMessage._id,
+        {
+          messageStatus: "read",
+        },
+        {
+          new: true,
+        }
+      );
+
+      if (getMessage) {
+        return getMessage;
+      }
     }
   }
 };
