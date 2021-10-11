@@ -49,38 +49,127 @@ const login = async (userData) => {
     "-groups -contactList  -unReadMessages -contactList -unregisteredContacts -groups -media  -UserLastMessage"
   );
 
-  // console.log(getUser);
+  if (getUser) {
+    let socketId = getUser.userActivity[0];
 
-  if (getUser && (await bcrypt.compare(userData.password, getUser.password))) {
-    let secret = process.env.TOKEN_SECRET;
+    if (socketId) {
+      if (socketId.socketId === null) {
+        // console.log("user is offline and can log in again");
+        if (
+          getUser &&
+          (await bcrypt.compare(userData.password, getUser.password))
+        ) {
+          let secret = process.env.TOKEN_SECRET;
 
-    let { name, email, phoneNumber, _id, profileImage, unreadMessages } =
-      getUser;
-    let userDetails = {
-      name,
-      email,
-      phoneNumber,
-      _id,
-      profileImage,
-      unreadMessages,
-    };
+          let { name, email, phoneNumber, _id, profileImage, unreadMessages } =
+            getUser;
+          let userDetails = {
+            name,
+            email,
+            phoneNumber,
+            _id,
+            profileImage,
+            unreadMessages,
+          };
 
-    const token = jwt.sign(
-      {
-        userId: getUser.id,
-      },
-      secret,
-      {
-        expiresIn: "1w",
+          const token = jwt.sign(
+            {
+              userId: getUser.id,
+            },
+            secret,
+            {
+              expiresIn: "1w",
+            }
+          );
+          return {
+            userDetails,
+            token,
+          };
+        } else {
+          return false;
+        }
+      } else {
+        console.log("user is currently logged please log out first to login");
       }
-    );
-    return {
-      userDetails,
-      token,
-    };
+    } else {
+      // console.log("User has never logged in before");
+      if (
+        getUser &&
+        (await bcrypt.compare(userData.password, getUser.password))
+      ) {
+        let secret = process.env.TOKEN_SECRET;
+
+        let { name, email, phoneNumber, _id, profileImage, unreadMessages } =
+          getUser;
+        let userDetails = {
+          name,
+          email,
+          phoneNumber,
+          _id,
+          profileImage,
+          unreadMessages,
+        };
+
+        const token = jwt.sign(
+          {
+            userId: getUser.id,
+          },
+          secret,
+          {
+            expiresIn: "1w",
+          }
+        );
+        return {
+          userDetails,
+          token,
+        };
+      } else {
+        return false;
+      }
+    }
   } else {
     return false;
   }
+
+  return;
+  // if (socketId.length > 0 && socketId[0].socketId !== null) {
+  //   if (
+  //     getUser &&
+  //     (await bcrypt.compare(userData.password, getUser.password))
+  //   ) {
+  //     let secret = process.env.TOKEN_SECRET;
+
+  //     let { name, email, phoneNumber, _id, profileImage, unreadMessages } =
+  //       getUser;
+  //     let userDetails = {
+  //       name,
+  //       email,
+  //       phoneNumber,
+  //       _id,
+  //       profileImage,
+  //       unreadMessages,
+  //     };
+
+  //     const token = jwt.sign(
+  //       {
+  //         userId: getUser.id,
+  //       },
+  //       secret,
+  //       {
+  //         expiresIn: "1w",
+  //       }
+  //     );
+  //     return {
+  //       userDetails,
+  //       token,
+  //     };
+  //   } else {
+  //     return false;
+  //   }
+  // } else {
+  //   console.log("user already logged in");
+  //   return false;
+  // }
 };
 
 const addContact = async (id, body, cb) => {
