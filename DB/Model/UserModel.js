@@ -371,6 +371,16 @@ const getUserBySocket = async (socket) => {
   }
 };
 
+const getContactList = async (id) => {
+  let fetchContactList = await User.findOne({ _id: id })
+    .populate("contactList")
+    .select("-unreadMessages -unregisteredContacts");
+
+  if (fetchContactList) {
+    return fetchContactList.contactList;
+  }
+};
+
 module.exports = {
   createUser,
   addContact,
@@ -381,4 +391,5 @@ module.exports = {
   removeUserLastSeen,
   getUserSession,
   getUserBySocket,
+  getContactList,
 };

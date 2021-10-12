@@ -4,6 +4,7 @@ const {
   addContact,
   getUser,
   login,
+  getContactList,
 } = require("../DB/Model/UserModel");
 const userRouter = express.Router();
 
@@ -91,6 +92,38 @@ userRouter.get("/getUser/:id", async (req, res) => {
       }
     }
   });
+});
+
+userRouter.get("/getContactList/:id", async (req, res) => {
+  let userId = req.params.id;
+
+  let fetchContactList = await getContactList(userId);
+  if (fetchContactList) {
+    if (fetchContactList.length > 0) {
+      res.status(200).send(fetchContactList);
+    } else {
+      res.status(200).json({
+        message: "users not found",
+      });
+    }
+  } else {
+    res.status(400).send(false);
+  }
+  // await getUser(userId, (result) => {
+  //   if (result) {
+  //     res.status(200).send(result);
+  //   } else if (result === undefined) {
+  //     res.status(200).json({
+  //       message: "User not found",
+  //     });
+  //   } else {
+  //     {
+  //       res.status(400).json({
+  //         message: "User not found",
+  //       });
+  //     }
+  //   }
+  // });
 });
 
 module.exports = userRouter;
