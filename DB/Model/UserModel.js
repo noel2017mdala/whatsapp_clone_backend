@@ -3,6 +3,7 @@ const UserSchema = require("../Schema/UserSchema");
 const MessagesSchema = require("../Schema/MessageSchema");
 const User = mongoose.model("User", UserSchema);
 const Messages = mongoose.model("Messages", MessagesSchema);
+const ObjectID = require("mongodb").ObjectID;
 const { getUserMessages } = require("./MessageModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -130,46 +131,6 @@ const login = async (userData) => {
   } else {
     return false;
   }
-
-  return;
-  // if (socketId.length > 0 && socketId[0].socketId !== null) {
-  //   if (
-  //     getUser &&
-  //     (await bcrypt.compare(userData.password, getUser.password))
-  //   ) {
-  //     let secret = process.env.TOKEN_SECRET;
-
-  //     let { name, email, phoneNumber, _id, profileImage, unreadMessages } =
-  //       getUser;
-  //     let userDetails = {
-  //       name,
-  //       email,
-  //       phoneNumber,
-  //       _id,
-  //       profileImage,
-  //       unreadMessages,
-  //     };
-
-  //     const token = jwt.sign(
-  //       {
-  //         userId: getUser.id,
-  //       },
-  //       secret,
-  //       {
-  //         expiresIn: "1w",
-  //       }
-  //     );
-  //     return {
-  //       userDetails,
-  //       token,
-  //     };
-  //   } else {
-  //     return false;
-  //   }
-  // } else {
-  //   console.log("user already logged in");
-  //   return false;
-  // }
 };
 
 const addContact = async (id, body, cb) => {
@@ -225,6 +186,7 @@ const addContact = async (id, body, cb) => {
 
 //gets all users in the users contact list that sent a message
 const getUser = async (id, cb) => {
+  const objectId = new ObjectID();
   let userCollection = [];
   let checkIfValid = mongoose.Types.ObjectId.isValid(id);
   if (checkIfValid) {
@@ -233,55 +195,56 @@ const getUser = async (id, cb) => {
       "-email -password -groups -media -contactList -country -unReadMessages -unregisteredContacts"
     );
 
-    if (user) {
-      let test = Promise.all(
-        user.contactList.map(async (user) => {
-          let getMessages = await getUserMessages(id, user.id, (e) => {
-            if (e) {
-              return e;
-            }
+    let getUserMessagesList = await Messages.find({
+      $or: [{ from: id }, { to: id }],
+    });
+
+    let holdValues = [];
+    checkValidityArr = (id) => {
+      if (!holdValues.includes(id)) {
+        holdValues.push(id);
+      }
+    };
+    getUserMessagesList.map((e) => {
+      if (e.to.toString() !== id) {
+        checkValidityArr(e.to.toString());
+      } else if (e.from.toString() !== id) {
+        checkValidityArr(e.from.toString());
+      }
+    });
+
+    //get User
+
+    let data = Promise.all(
+      holdValues.map(async (e) => {
+        if (mongoose.Types.ObjectId.isValid(e)) {
+          let getUser = await User.findById(ObjectID(e))
+            .select("-contactList -password -unregisteredContacts")
+            .populate("UserLastMessage");
+
+          const filterMessage = await Messages.find({
+            $or: [
+              { from: id, to: ObjectID(e) },
+              { from: ObjectID(e), to: id },
+            ],
           });
 
-          if (getMessages && mongoose.Types.ObjectId.isValid(getMessages)) {
-            let getUser = await User.findById(getMessages)
-              .select("-contactList -password -unregisteredContacts")
-              .populate("UserLastMessage");
-
-            return getUser;
+          if (getUser && filterMessage) {
+            let data = filterMessage[filterMessage.length - 1];
+            let newObj = {
+              userDetails: getUser,
+              userLastMessage: data,
+            };
+            return newObj;
           }
-        })
-      );
-      let awaitResult = await test;
+        }
+      })
+    );
 
-      let holdLastMessages = [];
+    let returnedRes = await data;
 
-      let demo = Promise.all(
-        awaitResult.map(async (e) => {
-          if (e) {
-            const filterMessage = await Messages.find({
-              $or: [
-                { from: id, to: e._id },
-                { from: e._id, to: id },
-              ],
-            });
-
-            if (filterMessage) {
-              let data = filterMessage[filterMessage.length - 1];
-              let newObj = {
-                userDetails: e,
-                userLastMessage: data,
-              };
-
-              holdLastMessages.push(newObj);
-            }
-            return holdLastMessages;
-          }
-        })
-      );
-
-      let data = await demo;
-
-      cb(data[data.length - 1]);
+    if (returnedRes) {
+      cb(returnedRes);
     } else {
       cb(false);
     }
@@ -393,3 +356,82 @@ module.exports = {
   getUserBySocket,
   getContactList,
 };
+
+/*
+
+    let test = Promise.all(
+        holdValues.map(async (user) => {
+          let getMessages = await getUserMessages(id, ObjectID(user), (e) => {
+            if (e) {
+              return e;
+            }
+          });
+          if (getMessages && mongoose.Types.ObjectId.isValid(getMessages)) {
+            let getUser = await User.findById(getMessages)
+              .select("-contactList -password -unregisteredContacts")
+              .populate("UserLastMessage");
+  
+            return getUser;
+          }
+        })
+      );
+
+
+
+
+    if (user) {
+        let test = Promise.all(
+          user.contactList.map(async (user) => {
+            let getMessages = await getUserMessages(id, user.id, (e) => {
+              if (e) {
+                return e;
+              }
+            });
+  
+            if (getMessages && mongoose.Types.ObjectId.isValid(getMessages)) {
+              let getUser = await User.findById(getMessages)
+                .select("-contactList -password -unregisteredContacts")
+                .populate("UserLastMessage");
+  
+              return getUser;
+            }
+          })
+        );
+        let awaitResult = await test;
+  
+        let holdLastMessages = [];
+  
+        let demo = Promise.all(
+          awaitResult.map(async (e) => {
+            if (e) {
+              const filterMessage = await Messages.find({
+                $or: [
+                  { from: id, to: e._id },
+                  { from: e._id, to: id },
+                ],
+              });
+  
+              if (filterMessage) {
+                let data = filterMessage[filterMessage.length - 1];
+                let newObj = {
+                  userDetails: e,
+                  userLastMessage: data,
+                };
+  
+                holdLastMessages.push(newObj);
+              }
+  
+              return holdLastMessages;
+            }
+          })
+        );
+  
+        let data = await demo;
+  
+        console.log(data);
+  
+        cb(data[0]);
+      } else {
+        cb(false);
+      }
+*/

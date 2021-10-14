@@ -92,20 +92,21 @@ const setUnread = async ({ userId, senderId }) => {
       });
 
       let lastMessage = filterMessage[filterMessage.length - 1];
-      // console.log(lastMessage._id);
-      let getMessage = await Messages.findByIdAndUpdate(
-        lastMessage._id,
-        {
-          messageStatus: "read",
-        },
-        {
-          new: true,
+      if (lastMessage) {
+        let getMessage = await Messages.findByIdAndUpdate(
+          lastMessage._id,
+          {
+            messageStatus: "read",
+          },
+          {
+            new: true,
+          }
+        );
+        if (getMessage) {
+          return getMessage;
         }
-      );
-
-      if (getMessage) {
-        return getMessage;
       }
+      // console.log(lastMessage._id);
     }
   }
 };
@@ -122,6 +123,7 @@ const getUserMessages = async (user1, user2, cb) => {
     from: user1,
     to: user2,
   });
+
   if (filterMessage.length > 0) {
     return cb(user2);
   }
