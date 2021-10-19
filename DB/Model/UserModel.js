@@ -138,10 +138,42 @@ const addContact = async (id, body, cb) => {
   let user = await User.findById(id);
 
   if (checkIfValid && user) {
-    let contactList = body.contactList;
+    let contactList = body.body;
     let holdContact = [];
     let unregisteredContacts = [];
 
+    let validateContact = await User.findOne({
+      phoneNumber: contactList.contact,
+    });
+
+    if (validateContact) {
+      let contactCollection = [...user.contactList];
+      if (!contactCollection.includes(validateContact._id).toString()) {
+        contactCollection.push(validateContact._id);
+
+        let updateContacts = await User.findByIdAndUpdate(
+          id,
+          {
+            $addToSet: {
+              contactList: contactCollection,
+            },
+          },
+          {
+            new: true,
+          }
+        );
+
+        if (updateContacts) {
+          cb(updateContacts);
+        }
+      } else {
+        console.log("you already have this contact");
+      }
+    } else {
+      console.log("contact not found");
+    }
+
+    return;
     let test = Promise.all(
       contactList.map(async (contact) => {
         let getContact = await User.findOne({ phoneNumber: contact.contact });
