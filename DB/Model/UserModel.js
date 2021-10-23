@@ -137,6 +137,10 @@ const addContact = async (id, body, cb) => {
   let checkIfValid = mongoose.Types.ObjectId.isValid(id);
   let user = await User.findById(id);
 
+  /*
+   - Checks if the Id provided is a valid one
+   - Checks if the user if available in the database of is registered
+  */
   if (checkIfValid && user) {
     let contactList = body.body;
     let holdContact = [];
@@ -147,27 +151,32 @@ const addContact = async (id, body, cb) => {
     });
 
     if (validateContact) {
-      let contactCollection = [...user.contactList];
-      if (!contactCollection.includes(validateContact._id).toString()) {
-        contactCollection.push(validateContact._id);
+      /*
+      - If user is found it gets the users contact list 
+      - Check if the user to be added is already available in the users contact list
 
+      */
+      if (user.contactList.includes(validateContact._id.toString())) {
+        // returns if the user is available iin the contact list
+        console.log(`Yep we have that`);
+      } else {
+        /*
+        - if the user is not found in the contact list a new user is created
+        */
         let updateContacts = await User.findByIdAndUpdate(
           id,
           {
             $addToSet: {
-              contactList: contactCollection,
+              contactList: String(validateContact._id),
             },
           },
           {
             new: true,
           }
         );
-
         if (updateContacts) {
-          cb(updateContacts);
+          console.log("contact added successfully");
         }
-      } else {
-        console.log("you already have this contact");
       }
     } else {
       console.log("contact not found");
