@@ -22,6 +22,7 @@ const port = process.env.PORT || 8000;
 
 const User = require("./Routes/Users");
 const Messages = require("./Routes/Messages");
+const Group = require("./Routes/Group");
 
 //Io configurations
 io.on("connection", (socket) => {
@@ -105,6 +106,7 @@ app.use("/public/audio", express.static(__dirname + "/public/audio"));
 //Routes
 app.use(`${process.env.API_URL}/users`, User);
 app.use(`${process.env.API_URL}/chat`, Messages);
+app.use(`${process.env.API_URL}/group`, Group);
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", req.headers.origin);

@@ -8,7 +8,6 @@ const Group = new Schema({
   },
   groupDescription: {
     type: String,
-    required: true,
   },
   groupProfile: {
     type: String,
@@ -21,18 +20,10 @@ const Group = new Schema({
   ],
   groupUsers: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: Object,
+      required: true,
     },
   ],
-  messages: {
-    type: String,
-    default: "",
-  },
-  groupAdmin: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
 
   dateCreated: {
     type: Date,
