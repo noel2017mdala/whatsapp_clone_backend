@@ -3,7 +3,8 @@ const GroupSchema = require("../Schema/GroupSchema");
 const Group = mongoose.model("Group", GroupSchema);
 
 const createGroup = (groupBody) => {
-  console.log(groupBody);
+  // let { fd } = groupBody;
+  // console.log(fd);
 };
 
 module.exports = {

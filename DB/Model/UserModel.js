@@ -139,7 +139,7 @@ const addContact = async (id, body, cb) => {
 
   /*
    - Checks if the Id provided is a valid one
-   - Checks if the user if available in the database of is registered
+   - Checks if the user is available in the database or is registered
   */
   if (checkIfValid && user) {
     let contactList = body.body;
