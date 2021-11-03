@@ -5,6 +5,7 @@ const UserSchema = require("../Schema/UserSchema");
 const User = mongoose.model("User", UserSchema);
 
 const createGroup = async (groupBody) => {
+  console.log(groupBody);
   let { description, groupUsers, groupImage, created_by } = groupBody;
   if (
     description !== "" &&
@@ -17,6 +18,7 @@ const createGroup = async (groupBody) => {
       groupProfile: `http://localhost:8000/${groupImage}`,
       groupUsers: groupUsers,
       createdBy: created_by,
+      groupAdmin: created_by,
     });
     group = await group.save();
 

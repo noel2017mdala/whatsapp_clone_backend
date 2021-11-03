@@ -79,6 +79,7 @@ userRouter.get("/getUser/:id", async (req, res) => {
 
   await getUser(userId, (result) => {
     if (result) {
+      console.log(result);
       res.status(200).send(result);
     } else if (result === undefined) {
       res.status(200).json({

@@ -9,6 +9,11 @@ const Group = new Schema({
   groupDescription: {
     type: String,
   },
+  category: {
+    type: String,
+    required: true,
+    default: "Group",
+  },
   groupProfile: {
     type: String,
     default: "",
@@ -19,6 +24,12 @@ const Group = new Schema({
     },
   ],
   groupUsers: [
+    {
+      type: Object,
+      required: true,
+    },
+  ],
+  groupAdmin: [
     {
       type: Object,
       required: true,

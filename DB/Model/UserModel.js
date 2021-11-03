@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const UserSchema = require("../Schema/UserSchema");
 const MessagesSchema = require("../Schema/MessageSchema");
 const User = mongoose.model("User", UserSchema);
+const GroupSchema = require("../Schema/GroupSchema");
+const Group = mongoose.model("Group", GroupSchema);
 const Messages = mongoose.model("Messages", MessagesSchema);
 const ObjectID = require("mongodb").ObjectID;
 const { getUserMessages } = require("./MessageModel");
@@ -231,10 +233,32 @@ const getUser = async (id, cb) => {
   let userCollection = [];
   let checkIfValid = mongoose.Types.ObjectId.isValid(id);
   if (checkIfValid) {
-    let user = await User.findById(id).populate(
-      "contactList",
-      "-email -password -groups -media -contactList -country -unReadMessages -unregisteredContacts"
+    let user = await User.findById(id)
+      .populate(
+        "contactList",
+        "-email -password -media -contactList -country -unReadMessages -unregisteredContacts"
+      )
+      .select("-password -email");
+
+    // console.log(user.groups);
+
+    let getGroups = Promise.all(
+      user.groups.map(async (e) => {
+        let getGroup = await Group.findById(e);
+        let groupCollection = [];
+        if (getGroup) {
+          // groupCollection.push(getGroup);
+          return getGroup;
+        } else {
+          return "";
+        }
+
+        // return groupCollection;
+      })
     );
+
+    let returnedGroups = await getGroups;
+    // console.log(returnedGroups);
 
     let getUserMessagesList = await Messages.find({
       $or: [{ from: id }, { to: id }],
@@ -256,38 +280,55 @@ const getUser = async (id, cb) => {
 
     //get User
 
-    let data = Promise.all(
-      holdValues.map(async (e) => {
-        if (mongoose.Types.ObjectId.isValid(e)) {
-          let getUser = await User.findById(ObjectID(e))
-            .select("-contactList -password -unregisteredContacts")
-            .populate("UserLastMessage");
+    /*
+    - Checks if user has a conversation and a group
+    */
+    if (holdValues.length > 0) {
+      console.log("entering into a conversation zone");
+      let data = Promise.all(
+        holdValues.map(async (e) => {
+          if (mongoose.Types.ObjectId.isValid(e)) {
+            let getUser = await User.findById(ObjectID(e))
+              .select("-contactList -password -unregisteredContacts")
+              .populate("UserLastMessage");
 
-          const filterMessage = await Messages.find({
-            $or: [
-              { from: id, to: ObjectID(e) },
-              { from: ObjectID(e), to: id },
-            ],
-          });
+            const filterMessage = await Messages.find({
+              $or: [
+                { from: id, to: ObjectID(e) },
+                { from: ObjectID(e), to: id },
+              ],
+            });
 
-          if (getUser && filterMessage) {
-            let data = filterMessage[filterMessage.length - 1];
-            let newObj = {
-              userDetails: getUser,
-              userLastMessage: data,
-            };
-            return newObj;
+            if (getUser && filterMessage) {
+              let data = filterMessage[filterMessage.length - 1];
+              let newObj = {
+                userDetails: getUser,
+                userLastMessage: data,
+                userGroups: returnedGroups,
+              };
+              return newObj;
+            } else {
+            }
           }
-        }
-      })
-    );
+        })
+      );
 
-    let returnedRes = await data;
+      let returnedRes = await data;
 
-    if (returnedRes) {
-      cb(returnedRes);
+      if (returnedRes) {
+        cb(returnedRes);
+      } else {
+        cb(false);
+      }
+    } else if (returnedGroups.length > 0) {
+      let newObj = {
+        userGroups: returnedGroups,
+      };
+      cb([newObj]);
+      console.log("No conversation was made");
     } else {
-      cb(false);
+      cb([]);
+      console.log("No chart");
     }
   }
 };

@@ -47,6 +47,7 @@ GroupRouter.post(
     //Parameters provided by the client
     let { Uid, users, description, created_by } = req.body;
     let userData = users.split(",");
+    userData.push(created_by);
 
     // Renames the incoming file before being uploaded to the server
     let icon = `public/userProfiles/${
