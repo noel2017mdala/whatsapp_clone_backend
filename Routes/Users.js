@@ -13,7 +13,6 @@ userRouter.post("/createUser", async (req, res) => {
   if (body) {
     await createUser(body, (result) => {
       if (result) {
-        console.log(result);
         res.status(200).send(result);
       } else {
         res.status(400).json({
@@ -79,7 +78,6 @@ userRouter.get("/getUser/:id", async (req, res) => {
 
   await getUser(userId, (result) => {
     if (result) {
-      console.log(result);
       res.status(200).send(result);
     } else if (result === undefined) {
       res.status(200).json({

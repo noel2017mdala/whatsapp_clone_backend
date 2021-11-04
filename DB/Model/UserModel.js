@@ -328,7 +328,6 @@ const getUser = async (id, cb) => {
       console.log("No conversation was made");
     } else {
       cb([]);
-      console.log("No chart");
     }
   }
 };
