@@ -53,6 +53,28 @@ const createGroup = async (groupBody) => {
   }
 };
 
+const getGroup = async ({ id }) => {
+  console.log(id);
+
+  //Validate id
+
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    let group = await Group.findById(id).populate({
+      path: "groupUsers",
+      model: "User",
+    });
+    if (group) {
+      console.log(group);
+      return group;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+};
+
 module.exports = {
   createGroup,
+  getGroup,
 };

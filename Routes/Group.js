@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const { createGroup } = require("../DB/Model/GroupModel");
+const { createGroup, getGroup } = require("../DB/Model/GroupModel");
 const GroupRouter = express.Router();
 
 /*
@@ -82,5 +82,18 @@ Verifying if the image was uploaded before creating the group
     res.status(400).json({ error: error.message });
   }
 );
+
+GroupRouter.get("/getGroup/:id", async (req, res) => {
+  if (req.params.id) {
+    let groupData = await getGroup(req.params);
+    if (groupData) {
+      res.status(200).send(groupData);
+    } else {
+      res.status(400).json({
+        message: "Group not found",
+      });
+    }
+  }
+});
 
 module.exports = GroupRouter;
