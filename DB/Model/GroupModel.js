@@ -5,7 +5,6 @@ const UserSchema = require("../Schema/UserSchema");
 const User = mongoose.model("User", UserSchema);
 
 const createGroup = async (groupBody) => {
-  console.log(groupBody);
   let { description, groupUsers, groupImage, created_by } = groupBody;
   if (
     description !== "" &&
@@ -54,7 +53,7 @@ const createGroup = async (groupBody) => {
 };
 
 const getGroup = async ({ id }) => {
-  console.log(id);
+  //console.log(id);
 
   //Validate id
 
@@ -64,7 +63,7 @@ const getGroup = async ({ id }) => {
       model: "User",
     });
     if (group) {
-      console.log(group);
+      // console.log(group);
       return group;
     } else {
       return false;

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const moment = require("moment");
 const { Schema } = mongoose;
 
-const Messages = new Schema({
+const GroupMessages = new Schema({
   from: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -17,7 +17,11 @@ const Messages = new Schema({
     type: String,
     required: true,
   },
-
+  groupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Group",
+    required: true,
+  },
   messageStatus: {
     type: String,
     default: "sent",
@@ -32,17 +36,4 @@ const Messages = new Schema({
   },
 });
 
-module.exports = Messages;
-
-// const Messages = new Schema({
-//   message: [
-//     {
-//       type: Object,
-//       required: true,
-//     },
-//   ],
-//   dateCreated: {
-//     type: Date,
-//     default: Date.now,
-//   },
-// });
+module.exports = GroupMessages;
