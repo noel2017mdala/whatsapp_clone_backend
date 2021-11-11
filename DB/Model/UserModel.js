@@ -7,6 +7,7 @@ const Group = mongoose.model("Group", GroupSchema);
 const Messages = mongoose.model("Messages", MessagesSchema);
 const ObjectID = require("mongodb").ObjectID;
 const { getUserMessages } = require("./MessageModel");
+const { getTime } = require("../../helper/getTime");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -361,9 +362,6 @@ const updateUserActivity = async (socketData) => {
 };
 
 const removeUserLastSeen = async (socketId) => {
-  let today = new Date();
-  let time = today.getHours() + ":" + today.getMinutes();
-
   let getUser = await User.findOne({ "userActivity.socketId": socketId });
   // console.log(getUser._id);
   if (getUser) {
@@ -373,7 +371,7 @@ const removeUserLastSeen = async (socketId) => {
         userActivity: {
           userId: getUser._id,
           socketId: null,
-          lastSeenTime: time,
+          lastSeenTime: getTime(),
         },
       },
       {

@@ -11,7 +11,6 @@ const getGroupMessages = async (id) => {
     model: "User",
   });
   if (findGroupMessage) {
-    console.log(findGroupMessage);
     return findGroupMessage;
   } else {
     return false;
