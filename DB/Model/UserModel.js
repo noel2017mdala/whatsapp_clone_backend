@@ -425,6 +425,17 @@ const getContactList = async (id) => {
   }
 };
 
+const getUserGroups = async (id) => {
+  let getUser = await User.findOne({ _id: id }).populate({
+    path: "groups",
+    model: "Group",
+  });
+  if (getUser) {
+    return getUser.groups;
+  } else {
+    return false;
+  }
+};
 module.exports = {
   createUser,
   addContact,
@@ -436,6 +447,7 @@ module.exports = {
   getUserSession,
   getUserBySocket,
   getContactList,
+  getUserGroups,
 };
 
 /*

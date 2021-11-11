@@ -24,7 +24,7 @@ const GroupMessages = new Schema({
   },
   messageStatus: {
     type: String,
-    default: "sent",
+    default: "received",
   },
   dateSent: {
     type: String,
@@ -32,7 +32,7 @@ const GroupMessages = new Schema({
   },
   timeSent: {
     type: String,
-    default: moment().format("hh:mm:ss"),
+    required: true,
   },
 });
 
