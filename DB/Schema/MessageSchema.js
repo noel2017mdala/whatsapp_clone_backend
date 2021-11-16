@@ -22,6 +22,10 @@ const Messages = new Schema({
     type: String,
     default: "sent",
   },
+
+  messageTag: {
+    type: String,
+  },
   dateSent: {
     type: String,
     default: moment().format("DD/MM/YYYY"),

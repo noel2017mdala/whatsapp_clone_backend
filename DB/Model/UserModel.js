@@ -373,6 +373,30 @@ const updateUserActivity = async (socketData) => {
   }
 };
 
+const updateUserNewMessages = async (id) => {
+  const getMessages = await Messages.find({ to: id, messageStatus: "sent" });
+  let data = Promise.all(
+    getMessages.map(async (e) => {
+      let messages = await Messages.findByIdAndUpdate(
+        e._id,
+        {
+          $set: {
+            messageStatus: "received",
+          },
+        },
+        {
+          new: true,
+        }
+      );
+      return messages;
+    })
+  );
+
+  let getMessageData = await data;
+  if (getMessageData.length > 0) {
+    return getMessageData;
+  }
+};
 const removeUserLastSeen = async (socketId) => {
   let getUser = await User.findOne({ "userActivity.socketId": socketId });
   // console.log(getUser._id);
@@ -458,6 +482,7 @@ module.exports = {
   getUserBySocket,
   getContactList,
   getUserGroups,
+  updateUserNewMessages,
 };
 
 /*

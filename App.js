@@ -11,6 +11,7 @@ const {
   removeUserLastSeen,
   getUserBySocket,
   getUserGroups,
+  updateUserNewMessages,
 } = require("./DB/Model/UserModel");
 
 const { createMessage } = require("./DB/Model/MessageModel");
@@ -43,10 +44,21 @@ io.on("connection", (socket) => {
       let create = await createMessage({
         ...message,
         messageStatus: "received",
+        messageTag: "new",
       });
       if (create) {
         socket.to(userSession).emit("receive-message", message, data);
         socket.emit("demo", message.from, data);
+      }
+    } else {
+      let create = await createMessage({
+        ...message,
+        messageStatus: "sent",
+      });
+
+      if (create) {
+        socket.emit("demo", message.from, data);
+        console.log("message sent successfully");
       }
     }
   });
@@ -74,6 +86,17 @@ io.on("connection", (socket) => {
         .to(groupName)
         .emit("receive-group-message", { createMessage, data });
     }
+  });
+
+  socket.on("response_emit", (data, id) => {
+    // console.log(data);
+    // console.log(id);
+    // return;
+    let body = {
+      data,
+      id,
+    };
+    socket.emit("updateList", body);
   });
   // socket.on("refresh-user", async (message, data) => {
   //   console.log(socket.id);
@@ -104,6 +127,19 @@ io.use(async (socket, next) => {
       lastSeenTime: time,
     });
 
+    let messageUpdate = await updateUserNewMessages(
+      socket.request._query["userId"]
+    );
+    if (messageUpdate) {
+      const userSession = await getUserSession(messageUpdate[0].from);
+
+      if (userSession) {
+        io.to(userSession).emit("user_receive_sent_message", {
+          message: "Hello World",
+          id: messageUpdate[0].to,
+        });
+      }
+    }
     next();
   } catch (error) {
     console.log("Error failed to assign token to user");
