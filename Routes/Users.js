@@ -13,10 +13,12 @@ userRouter.post("/createUser", async (req, res) => {
   if (body) {
     await createUser(body, (result) => {
       if (result) {
-        res.status(200).send(result);
+        res
+          .status(200)
+          .send({ result, status: true, message: "user created successfully" });
       } else {
         res.status(400).json({
-          message: "Failed to create user",
+          message: "Failed to create user !!",
           result,
         });
       }

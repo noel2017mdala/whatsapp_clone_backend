@@ -2,7 +2,13 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const { createGroup, getGroup } = require("../DB/Model/GroupModel");
+const mongoose = require("mongoose");
+const {
+  createGroup,
+  getGroup,
+  commonGroups,
+} = require("../DB/Model/GroupModel");
+const { response } = require("express");
 const GroupRouter = express.Router();
 
 /*
@@ -96,4 +102,29 @@ GroupRouter.get("/getGroup/:id", async (req, res) => {
   }
 });
 
+GroupRouter.get("/commonGroup/:chatUserId/:userId", async (req, res) => {
+  // res.send({
+  //   message: "No groups in common found",
+  // });
+
+  const { chatUserId, userId } = req.params;
+
+  if (
+    mongoose.Types.ObjectId.isValid(chatUserId) &&
+    mongoose.Types.ObjectId.isValid(userId)
+  ) {
+    let commonGroupData = await commonGroups(req.params);
+    if (commonGroupData) {
+      res.status(200).send(commonGroupData);
+    } else {
+      res.status(400).json({
+        message: [],
+      });
+    }
+  } else {
+    res.status(400).json({
+      message: [],
+    });
+  }
+});
 module.exports = GroupRouter;

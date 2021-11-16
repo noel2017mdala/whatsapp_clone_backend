@@ -73,7 +73,42 @@ const getGroup = async ({ id }) => {
   }
 };
 
+const commonGroups = async (id) => {
+  const { chatUserId, userId } = id;
+
+  let getUserIdGroups = await User.findById(userId);
+  let getChatUserIdGroup = await User.findById(chatUserId);
+
+  if (
+    getChatUserIdGroup.groups.length > 0 &&
+    getUserIdGroups.groups.length > 0
+  ) {
+    let difference = getUserIdGroups.groups.filter((data) => {
+      return getChatUserIdGroup.groups.includes(data);
+    });
+
+    let groupCollection = Promise.all(
+      difference.map(async (groupData) => {
+        let group = await Group.findById(groupData).populate({
+          path: "groupUsers",
+          model: "User",
+        });
+        if (group) {
+          return group;
+        }
+      })
+    );
+
+    let groupData = await groupCollection;
+    return groupData;
+  } else {
+    return [];
+    // console.log("No groups found");
+  }
+};
+
 module.exports = {
   createGroup,
   getGroup,
+  commonGroups,
 };
