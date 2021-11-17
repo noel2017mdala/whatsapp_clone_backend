@@ -9,6 +9,7 @@ const io = require("../../socket/index");
 const createMessage = async (body) => {
   let insertMessage = new Messages({
     ...body,
+    timeSent: moment().format("hh:mm:ss"),
   });
   insertMessage = await insertMessage.save();
   if (insertMessage) {
@@ -68,10 +69,60 @@ const createMessage = async (body) => {
 };
 
 const setUnread = async ({ userId, senderId }) => {
-  let findReceiveUser = await User.findOne({
+  let getMessages = await Messages.find({
+    $or: [
+      { from: userId, to: senderId },
+      { from: senderId, to: userId },
+    ],
+    messageTag: "new",
+  });
+
+  if (getMessages.length > 0) {
+    const readMessageUpdate = Promise.all(
+      getMessages.map(async (e) => {
+        let updateMessage = await Messages.findByIdAndUpdate(
+          e._id,
+          {
+            messageStatus: "read",
+            messageTag: "",
+          },
+          {
+            new: true,
+          }
+        );
+        if (updateMessage) {
+          return updateMessage;
+        }
+      })
+    );
+
+    let updatedMessage = await readMessageUpdate;
+    if (updatedMessage.length > 0) {
+      let getSenderId = updatedMessage[0].to;
+
+      let updateUserCounter = await User.updateOne(
+        { "unreadMessages.sender": getSenderId.toString() },
+        {
+          $set: {
+            "unreadMessages.$.count": 0,
+          },
+        }
+      );
+
+      if (updateUserCounter) {
+        return { updateUserCounter, getMessages };
+      } else {
+        return false;
+      }
+    }
+  }
+  return;
+  let findReceiveUser = await User.find({
     _id: userId,
     "unreadMessages.sender": senderId,
   }).select("unreadMessages");
+
+  console.log(findReceiveUser);
 
   if (findReceiveUser) {
     let updateUserCounter = await User.updateOne(

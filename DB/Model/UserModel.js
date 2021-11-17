@@ -416,6 +416,7 @@ const removeUserLastSeen = async (socketId) => {
     );
 
     if (updateUserActivity) {
+      return updateUserActivity;
       console.log("Last seen Updated successfully");
     }
   }
@@ -470,6 +471,21 @@ const getUserGroups = async (id) => {
     return false;
   }
 };
+
+const logUserOut = async (id) => {
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    let getUser = await User.findById(id);
+    if (getUser) {
+      let userSession = await getUserSession(getUser._id);
+
+      if (userSession) {
+        let logOut = await removeUserLastSeen(userSession);
+        console.log("user logged out");
+        return logOut;
+      }
+    }
+  }
+};
 module.exports = {
   createUser,
   addContact,
@@ -483,6 +499,7 @@ module.exports = {
   getContactList,
   getUserGroups,
   updateUserNewMessages,
+  logUserOut,
 };
 
 /*

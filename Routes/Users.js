@@ -1,3 +1,4 @@
+const { response } = require("express");
 const express = require("express");
 const {
   createUser,
@@ -5,6 +6,7 @@ const {
   getUser,
   login,
   getContactList,
+  logUserOut,
 } = require("../DB/Model/UserModel");
 const userRouter = express.Router();
 
@@ -127,4 +129,16 @@ userRouter.get("/getContactList/:id", async (req, res) => {
   // });
 });
 
+userRouter.get("/logout/:id", async (req, res) => {
+  if (req.params) {
+    let logOutUserRes = await logUserOut(req.params.id);
+    if (logOutUserRes) {
+      res.status(200).send(logOutUserRes);
+    } else {
+      res.status(400).json({
+        message: "Failed to log user out",
+      });
+    }
+  }
+});
 module.exports = userRouter;

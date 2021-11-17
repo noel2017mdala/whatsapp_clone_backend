@@ -54,6 +54,7 @@ io.on("connection", (socket) => {
       let create = await createMessage({
         ...message,
         messageStatus: "sent",
+        messageTag: "new",
       });
 
       if (create) {
