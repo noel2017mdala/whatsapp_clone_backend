@@ -105,17 +105,20 @@ userRouter.post("/login", async (req, res) => {
           sameSite: "none",
           path: "/",
           expires: new Date(new Date().getTime() + 100000 * 10000),
+          secure: true,
         })
         .cookie("userData", userDetails, {
           sameSite: "none",
           path: "/",
           expires: new Date(new Date().getTime() + 100000 * 10000),
+          secure: true,
         })
         .cookie("signature", signature, {
           sameSite: "none",
           path: "/",
           expires: new Date(new Date().getTime() + 100000 * 10000),
           httpOnly: true,
+          secure: true,
         })
         .send("User");
     } else {
