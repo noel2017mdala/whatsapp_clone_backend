@@ -99,17 +99,6 @@ io.on("connection", (socket) => {
     };
     socket.emit("updateList", body);
   });
-  // socket.on("refresh-user", async (message, data) => {
-  //   console.log(socket.id);
-  //   let getUserId = await getUserBySocket(socket.id);
-  //   if (getUserId) {
-  //     console.log("About to dispatch");
-  //     // socket.to(getUserId.socketId[0].socketId).emit("user-emit", getUserId);
-  //     io.to(socket.id).emit("user-emit", "Your message");
-  //   }
-  //   // console.log(`user can now refresh ${socket.id}`);
-  //   // socket.to(socket.id).emit("user-emit", message, data);
-  // });
 
   socket.on("disconnect", async function () {
     console.log(this.id);
@@ -117,7 +106,6 @@ io.on("connection", (socket) => {
   });
 });
 
-//socket conn
 io.use(async (socket, next) => {
   let today = new Date();
   let time = today.getHours() + ":" + today.getMinutes();
@@ -143,7 +131,7 @@ io.use(async (socket, next) => {
     }
     next();
   } catch (error) {
-    console.log("Error failed to assign token to user");
+    // console.log("Error failed to assign token to user");
     return;
   }
 
@@ -160,7 +148,7 @@ io.use(async (socket, next) => {
       });
 
       let rooms = groupCollection;
-      // console.log(rooms);
+
       socket.join(rooms);
     }
   } else {
