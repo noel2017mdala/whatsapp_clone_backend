@@ -49,6 +49,7 @@ const createUser = async (userInfo, cb) => {
 };
 
 const login = async (userData) => {
+  //Checks if user is in the database based on the phone number sent
   let getUser = await User.findOne({ phoneNumber: userData.email }).select(
     "-groups -contactList  -unReadMessages -contactList -unregisteredContacts -groups -media  -UserLastMessage"
   );
@@ -56,13 +57,26 @@ const login = async (userData) => {
   if (getUser) {
     let socketId = getUser.userActivity[0];
 
+    //if user is available we check if that user has a socket id
+
     if (socketId) {
       if (socketId.socketId === null) {
-        // console.log("user is offline and can log in again");
+        /*
+          - if the user has no socket id that means 
+          - the user logged out and can login again
+
+          // console.log("user is offline and can log in again");
+        */
+
         if (
           getUser &&
           (await bcrypt.compare(userData.password, getUser.password))
         ) {
+          /*
+            - Phone number are correct
+            - generate user token
+            - assign userDetails to token
+          */
           let secret = process.env.TOKEN_SECRET;
 
           let { name, email, phoneNumber, _id, profileImage, unreadMessages } =
@@ -85,7 +99,11 @@ const login = async (userData) => {
               expiresIn: "1w",
             }
           );
-          console.log("login successful");
+
+          /*
+            - Send user token and user data to the user as cookies
+          */
+
           return {
             userDetails,
             token,
@@ -94,10 +112,16 @@ const login = async (userData) => {
           return false;
         }
       } else {
+        /*
+            - if user has socket it than means the user is logged in in another browser
+            - The verification code to logout user from that browser is coming soon 
+        */
         console.log("user is currently logged please log out first to login");
       }
     } else {
-      // console.log("User has never logged in before");
+      /*
+          - The user is a new user and has never logged into the application
+      */
       if (
         getUser &&
         (await bcrypt.compare(userData.password, getUser.password))
@@ -158,37 +182,46 @@ const addContact = async (id, body, cb) => {
       /*
       - If user is found it gets the users contact list 
       - Check if the user to be added is already available in the users contact list
+      - Checks is the user is not adding his/her own contact
 
       */
-      if (user.contactList.includes(validateContact._id.toString())) {
-        // returns if the user is available iin the contact list
-        console.log(`Yep we have that`);
-        cb({
-          message: "you already have this contact",
-          status: true,
-        });
-      } else {
-        /*
-        - if the user is not found in the contact list a new user is created
-        */
-        let updateContacts = await User.findByIdAndUpdate(
-          id,
-          {
-            $addToSet: {
-              contactList: String(validateContact._id),
-            },
-          },
-          {
-            new: true,
-          }
-        );
-        if (updateContacts) {
-          console.log("contact added successfully");
+
+      if (user._id.toString() !== validateContact._id.toString()) {
+        if (user.contactList.includes(validateContact._id.toString())) {
+          // returns if the user is available iin the contact list
+          console.log(`Yep we have that`);
           cb({
-            updateContacts,
-            message: "Contact added successfully",
+            message: "you already have this contact",
+            status: true,
           });
+        } else {
+          /*
+          - if the user is not found in the contact list a new user is created
+          */
+          let updateContacts = await User.findByIdAndUpdate(
+            id,
+            {
+              $addToSet: {
+                contactList: String(validateContact._id),
+              },
+            },
+            {
+              new: true,
+            }
+          );
+          if (updateContacts) {
+            console.log("contact added successfully");
+            cb({
+              updateContacts,
+              message: "Contact added successfully",
+            });
+          }
         }
+      } else {
+        cb({
+          message: "Failed to add contact",
+          status: false,
+        });
       }
     } else {
       console.log("contact not found");
@@ -239,8 +272,6 @@ const addContact = async (id, body, cb) => {
 
 //gets all users in the users contact list that sent a message
 const getUser = async (id, cb) => {
-  const objectId = new ObjectID();
-  let userCollection = [];
   let checkIfValid = mongoose.Types.ObjectId.isValid(id);
   if (checkIfValid) {
     let user = await User.findById(id)
@@ -335,13 +366,14 @@ const getUser = async (id, cb) => {
           userGroups: returnedGroups,
         };
         cb([newObj]);
-        console.log("No conversation was made");
       } else {
         cb([]);
       }
     } else {
       cb([]);
     }
+  } else {
+    cb();
   }
 };
 
@@ -451,12 +483,35 @@ const getUserBySocket = async (socket) => {
 };
 
 const getContactList = async (id) => {
-  let fetchContactList = await User.findOne({ _id: id })
-    .populate("contactList")
-    .select("-unreadMessages -unregisteredContacts");
+  let checkIfValid = mongoose.Types.ObjectId.isValid(id);
+  if (checkIfValid) {
+    //Verifies if user is is valid
+    let fetchContactList = await User.findOne({ _id: id })
+      .populate(
+        "contactList",
+        "-email -password -media -contactList -country -unReadMessages -unregisteredContacts"
+      )
+      .select("-unreadMessages -unregisteredContacts");
 
-  if (fetchContactList) {
-    return fetchContactList.contactList;
+    if (fetchContactList) {
+      /*
+        - if the contact is found the user is filtered 
+        - and only returns the required fields
+      */
+      return fetchContactList.contactList;
+    } else {
+      /*
+      if the contact is not found
+      an error is returned
+      */
+      return false;
+    }
+  } else {
+    /*
+      if the contact is not found
+      an error is returned
+      */
+    return false;
   }
 };
 
