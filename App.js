@@ -195,6 +195,10 @@ app.use((req, res, next) => {
 checkConnection((conResult) => {
   console.log(conResult);
 });
+
+app.get("/", (req, res) => {
+  res.send("Hello World from whatsapp");
+});
 http.listen(port, () => {
   console.log(`Server started on  http://localhost:${port}`);
 });
