@@ -102,17 +102,17 @@ userRouter.post("/login", async (req, res) => {
       res
         .status(200)
         .cookie("userPayLoad", headers, {
-          sameSite: "strict",
+          sameSite: "none",
           path: "/",
           expires: new Date(new Date().getTime() + 100000 * 10000),
         })
         .cookie("userData", userDetails, {
-          sameSite: "strict",
+          sameSite: "none",
           path: "/",
           expires: new Date(new Date().getTime() + 100000 * 10000),
         })
         .cookie("signature", signature, {
-          sameSite: "strict",
+          sameSite: "none",
           path: "/",
           expires: new Date(new Date().getTime() + 100000 * 10000),
           httpOnly: true,
