@@ -106,28 +106,29 @@ userRouter.post("/login", async (req, res) => {
       };
 
       console.log(loginDetails);
-      res
-        .status(200)
-        .cookie("userPayLoad", headers, {
-          sameSite: "none",
-          secure: true,
-          path: "/",
-          expires: new Date(new Date().getTime() + 100000 * 10000),
-        })
-        .cookie("userData", userDetails, {
-          sameSite: "none",
-          secure: true,
-          path: "/",
-          expires: new Date(new Date().getTime() + 100000 * 10000),
-        })
-        .cookie("signature", signature, {
-          sameSite: "none",
-          secure: true,
-          path: "/",
-          expires: new Date(new Date().getTime() + 100000 * 10000),
-          httpOnly: true,
-        })
-        .send("User");
+      // res
+      //   .status(200)
+      //   .cookie("userPayLoad", headers, {
+      //     sameSite: "none",
+      //     secure: true,
+      //     path: "/",
+      //     expires: new Date(new Date().getTime() + 100000 * 10000),
+      //   })
+      //   .cookie("userData", userDetails, {
+      //     sameSite: "none",
+      //     secure: true,
+      //     path: "/",
+      //     expires: new Date(new Date().getTime() + 100000 * 10000),
+      //   })
+      //   .cookie("signature", signature, {
+      //     sameSite: "none",
+      //     secure: true,
+      //     path: "/",
+      //     expires: new Date(new Date().getTime() + 100000 * 10000),
+      //     httpOnly: true,
+      //   })
+      //   .send("User");
+      res.status(200).send(loginDetails);
     } else {
       res.status(400).json({
         Message: "Login Failed",
