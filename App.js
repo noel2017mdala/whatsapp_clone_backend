@@ -163,7 +163,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "https://whatsapp-webb-clone.netlify.app/",
+    origin: "https://whatsapp-webb-clone.netlify.app",
     credentials: true,
   })
 );
