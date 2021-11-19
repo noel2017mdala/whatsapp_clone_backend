@@ -106,12 +106,14 @@ userRouter.post("/login", async (req, res) => {
           path: "/",
           expires: new Date(new Date().getTime() + 100000 * 10000),
           secure: true,
+          domain: "http://localhost:3000/",
         })
         .cookie("userData", userDetails, {
           sameSite: "none",
           path: "/",
           expires: new Date(new Date().getTime() + 100000 * 10000),
           secure: true,
+          domain: "http://localhost:3000/",
         })
         .cookie("signature", signature, {
           sameSite: "none",
@@ -119,6 +121,7 @@ userRouter.post("/login", async (req, res) => {
           expires: new Date(new Date().getTime() + 100000 * 10000),
           httpOnly: true,
           secure: true,
+          domain: "http://localhost:3000/",
         })
         .send("User");
     } else {
