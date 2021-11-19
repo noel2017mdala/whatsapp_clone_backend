@@ -183,7 +183,10 @@ app.use(`${process.env.API_URL}/group/chat`, GroupMessages);
 
 // Allow CORS
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin);
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://whatsapp-webb-clone.netlify.app"
+  );
   res.header("Access-Control-Allow-Credentials", true);
   res.header(
     "Access-Control-Allow-Headers",
