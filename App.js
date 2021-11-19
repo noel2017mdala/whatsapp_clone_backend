@@ -197,7 +197,7 @@ checkConnection((conResult) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello World from whatsapp");
+  res.send(`Hello World from ${req.headers.origin}`);
 });
 http.listen(port, () => {
   console.log(`Server started on  http://localhost:${port}`);
