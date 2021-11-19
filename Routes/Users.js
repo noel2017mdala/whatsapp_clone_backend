@@ -99,6 +99,13 @@ userRouter.post("/login", async (req, res) => {
         payload,
       };
       //if login is a success assign cookies to user
+      let loginDetails = {
+        headers,
+        userDetails,
+        signature,
+      };
+
+      console.log(loginDetails);
       res
         .status(200)
         .cookie("userPayLoad", headers, {
