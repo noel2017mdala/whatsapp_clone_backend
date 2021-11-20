@@ -16,9 +16,7 @@ const User = new Schema({
   },
   profileImage: {
     type: String,
-    default: `http://localhost:${
-      process.env.PORT || 8000
-    }/public/userProfiles/defaultProfile.jpg`,
+    default: `https://node-whatsapp-backend.herokuapp.com/public/userProfiles/defaultProfile.jpg`,
   },
   phoneNumber: {
     type: Number,

@@ -14,7 +14,7 @@ const createGroup = async (groupBody) => {
   ) {
     let group = new Group({
       groupName: description,
-      groupProfile: `http://localhost:8000/${groupImage}`,
+      groupProfile: `https://node-whatsapp-backend.herokuapp.com/${groupImage}`,
       groupUsers: groupUsers,
       createdBy: created_by,
       groupAdmin: created_by,
