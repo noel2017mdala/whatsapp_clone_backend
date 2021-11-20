@@ -105,7 +105,6 @@ userRouter.post("/login", async (req, res) => {
         signature,
       };
 
-      console.log(loginDetails);
       // res
       //   .status(200)
       //   .cookie("userPayLoad", headers, {
@@ -128,7 +127,13 @@ userRouter.post("/login", async (req, res) => {
       //     httpOnly: true,
       //   })
       //   .send("User");
-      res.status(200).send(loginDetails);
+      if (loginDetails) {
+        res.status(200).send(loginDetails);
+      } else {
+        res.status(400).json({
+          Message: "Login Failed",
+        });
+      }
     } else {
       res.status(400).json({
         Message: "Login Failed",
