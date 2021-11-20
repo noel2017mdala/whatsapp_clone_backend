@@ -128,20 +128,26 @@ userRouter.post("/login", async (req, res) => {
       //   })
       //   .send("User");
       if (loginDetails) {
-        res.status(200).send(loginDetails);
+        res.status(200).send({
+          status: true,
+          loginDetails,
+        });
       } else {
         res.status(400).json({
           Message: "Login Failed",
+          status: false,
         });
       }
     } else {
       res.status(400).json({
         Message: "Login Failed",
+        status: false,
       });
     }
   } else {
     res.status(400).json({
       Message: "Login Failed",
+      status: false,
     });
   }
 });
