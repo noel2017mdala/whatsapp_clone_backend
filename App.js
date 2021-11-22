@@ -163,7 +163,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "https://whatsapp-webb-clone.netlify.app",
+    origin: process.env.PRODUCTION,
     credentials: true,
   })
 );
@@ -175,6 +175,7 @@ app.use(
   express.static(__dirname + "/public/userProfiles")
 );
 app.use("/public/audio", express.static(__dirname + "/public/audio"));
+app.use("/Templates/404", express.static(__dirname + "/Templates/404"));
 //Routes
 app.use(`${process.env.API_URL}/users`, User);
 app.use(`${process.env.API_URL}/chat`, Messages);
@@ -183,10 +184,7 @@ app.use(`${process.env.API_URL}/group/chat`, GroupMessages);
 
 // Allow CORS
 app.use((req, res, next) => {
-  res.header(
-    "Access-Control-Allow-Origin",
-    "https://whatsapp-webb-clone.netlify.app"
-  );
+  res.header("Access-Control-Allow-Origin", process.env.PRODUCTION);
   res.header("Access-Control-Allow-Credentials", true);
   res.header(
     "Access-Control-Allow-Headers",
@@ -199,8 +197,12 @@ checkConnection((conResult) => {
   console.log(conResult);
 });
 
-app.get("/", (req, res) => {
-  res.send(`Hello World from ${req.headers.origin}`);
+// app.get("/", (req, res) => {
+//   res.send(`Hello World from ${req.headers.origin}`);
+// });
+
+app.get("*", (req, res) => {
+  res.sendFile(__dirname + "/Templates/404/404.html");
 });
 http.listen(port, () => {
   console.log(`Server started on  http://localhost:${port}`);
