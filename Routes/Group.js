@@ -50,38 +50,49 @@ GroupRouter.post(
   "/createGroup",
   upload.single("file"),
   async (req, res) => {
-    //Parameters provided by the client
-    let { Uid, users, description, created_by } = req.body;
-    let userData = users.split(",");
-    userData.push(created_by);
+    // console.log(req.file);
+    // console.log(req.body);
+    // return;
+    if (req.file) {
+      //Parameters provided by the client
+      let { Uid, users, description, created_by } = req.body;
+      if (Uid && users && description && created_by) {
+        let userData = users.split(",");
+        userData.push(created_by);
 
-    // Renames the incoming file before being uploaded to the server
-    let icon = `public/userProfiles/${
-      req.file.originalname
-    }-${Uid}-${path.extname(req.file.originalname)}`;
+        // Renames the incoming file before being uploaded to the server
+        let icon = `public/userProfiles/${
+          req.file.originalname
+        }-${Uid}-${path.extname(req.file.originalname)}`;
 
-    /*
-Verifying if the image was uploaded before creating the group
-*/
-    if (fs.existsSync(icon)) {
-      let groupInfo = {
-        description,
-        groupUsers: userData,
-        groupImage: icon,
-        created_by,
-      };
+        /*
+  Verifying if the image was uploaded before creating the group
+  */
+        if (fs.existsSync(icon)) {
+          let groupInfo = {
+            description,
+            groupUsers: userData,
+            groupImage: icon,
+            created_by,
+          };
 
-      // Pass the parameters to the createGroup for Group creation
-      let newGroup = await createGroup(groupInfo);
-      if (newGroup) {
-        res.status(200).send(newGroup);
+          // Pass the parameters to the createGroup for Group creation
+          let newGroup = await createGroup(groupInfo);
+          if (newGroup) {
+            res.status(200).send(newGroup);
+          } else {
+            res.status(400).json({
+              message: "Failed to add users to group",
+            });
+          }
+        } else {
+          console.log("The file is not available");
+        }
       } else {
-        res.status(400).json({
-          message: "Failed to add users to group",
-        });
+        res.status(400).json({ error: "Failed to upload the image" });
       }
     } else {
-      console.log("The file is not available");
+      res.status(400).json({ error: "please provide an image to be uploaded" });
     }
   },
   (error, req, res, next) => {
