@@ -202,7 +202,7 @@ checkConnection((conResult) => {
 // });
 
 app.get("*", (req, res) => {
-  res.sendFile(__dirname + "/Templates/404/404.html");
+  res.status(404).sendFile(__dirname + "/Templates/404/404.html");
 });
 http.listen(port, () => {
   console.log(`Server started on  http://localhost:${port}`);
