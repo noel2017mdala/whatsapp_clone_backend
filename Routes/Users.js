@@ -9,6 +9,7 @@ const {
   getContactList,
   logUserOut,
 } = require("../DB/Model/UserModel");
+const Auth = require("../Middleware/Auth-middleware");
 const userRouter = express.Router();
 
 const regEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
@@ -169,7 +170,7 @@ let validateAddContact = (data) => {
 
   return false;
 };
-userRouter.put("/addContact/:id", async (req, res) => {
+userRouter.put("/addContact/:id", Auth, async (req, res) => {
   let userId = req.params.id;
   let body = req.body;
 
@@ -190,7 +191,7 @@ userRouter.put("/addContact/:id", async (req, res) => {
   }
 });
 
-userRouter.get("/getUser/:id", async (req, res) => {
+userRouter.get("/getUser/:id", Auth, async (req, res) => {
   let userId = req.params.id;
 
   console.log(userId);
@@ -220,7 +221,7 @@ userRouter.get("/getUser/:id", async (req, res) => {
   }
 });
 
-userRouter.get("/getContactList/:id", async (req, res) => {
+userRouter.get("/getContactList/:id", Auth, async (req, res) => {
   let userId = req.params.id;
 
   if (userId) {
@@ -261,7 +262,7 @@ userRouter.get("/getContactList/:id", async (req, res) => {
   // });
 });
 
-userRouter.get("/logout/:id", async (req, res) => {
+userRouter.get("/logout/:id", Auth, async (req, res) => {
   if (req.params) {
     let logOutUserRes = await logUserOut(req.params.id);
     if (logOutUserRes) {

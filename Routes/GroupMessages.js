@@ -4,9 +4,10 @@ const {
   getGroupMessages,
   createGroupMessage,
 } = require("../DB/Model/GroupMessages");
+const Auth = require("../Middleware/Auth-middleware");
 const GroupMessages = express.Router();
 
-GroupMessages.get("/getMessages/:id", async (req, res) => {
+GroupMessages.get("/getMessages/:id", Auth, async (req, res) => {
   let { id } = req.params;
   let groupMessages = await getGroupMessages(id);
   if (groupMessages) {
@@ -18,7 +19,7 @@ GroupMessages.get("/getMessages/:id", async (req, res) => {
   }
 });
 
-GroupMessages.post("/createGroupMessage", async (req, res) => {
+GroupMessages.post("/createGroupMessage", Auth, async (req, res) => {
   let body = req.body;
   let createMessage = await createGroupMessage(body);
   if (createMessage) {
