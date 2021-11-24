@@ -8,6 +8,7 @@ const {
   getGroup,
   commonGroups,
 } = require("../DB/Model/GroupModel");
+const Auth = require("../Middleware/Auth-middleware");
 const { response } = require("express");
 const GroupRouter = express.Router();
 
@@ -48,6 +49,7 @@ const upload = multer({
 
 GroupRouter.post(
   "/createGroup",
+  Auth,
   upload.single("file"),
   async (req, res) => {
     // console.log(req.file);
@@ -100,7 +102,7 @@ GroupRouter.post(
   }
 );
 
-GroupRouter.get("/getGroup/:id", async (req, res) => {
+GroupRouter.get("/getGroup/:id", Auth, async (req, res) => {
   if (req.params.id) {
     let groupData = await getGroup(req.params);
     if (groupData) {
@@ -113,7 +115,7 @@ GroupRouter.get("/getGroup/:id", async (req, res) => {
   }
 });
 
-GroupRouter.get("/commonGroup/:chatUserId/:userId", async (req, res) => {
+GroupRouter.get("/commonGroup/:chatUserId/:userId", Auth, async (req, res) => {
   // res.send({
   //   message: "No groups in common found",
   // });

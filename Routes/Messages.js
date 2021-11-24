@@ -7,9 +7,10 @@ const {
   setUnread,
 } = require("../DB/Model/MessageModel");
 const messagesRouter = express.Router();
+const Auth = require("../Middleware/Auth-middleware");
 const fullDate = require("../helper/dateHelper");
 
-messagesRouter.post("/createMessage", async (req, res) => {
+messagesRouter.post("/createMessage", Auth, async (req, res) => {
   let body = req.body;
   let message = await createMessage(body);
   if (message) {
@@ -21,7 +22,7 @@ messagesRouter.post("/createMessage", async (req, res) => {
   }
 });
 
-messagesRouter.post("/setUserUnread", async (req, res) => {
+messagesRouter.post("/setUserUnread", Auth, async (req, res) => {
   let body = req.body;
 
   let setUnreadChat = await setUnread(body);
@@ -47,6 +48,7 @@ messagesRouter.get("/getMessages", async (req, res) => {
 
 messagesRouter.get(
   "/getFilteredMessages/:senderId/:receiverId",
+  Auth,
   async (req, res) => {
     let { senderId, receiverId } = req.params;
     let filteredMessages = await getLastMessage(senderId, receiverId);
@@ -62,6 +64,7 @@ messagesRouter.get(
 
 messagesRouter.get(
   "/getAllMessages/:senderId/:receiverId",
+  Auth,
   async (req, res) => {
     let { senderId, receiverId } = req.params;
     let getAllMessages = await getAllUserMessages(senderId, receiverId);
