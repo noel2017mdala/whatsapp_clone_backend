@@ -7,9 +7,13 @@ const {
   createGroup,
   getGroup,
   commonGroups,
+  addGroupAdmin,
+  getGroupUsers,
+  addUsersToGroup,
 } = require("../DB/Model/GroupModel");
 const Auth = require("../Middleware/Auth-middleware");
 const { response } = require("express");
+const { resolveSoa } = require("dns");
 const GroupRouter = express.Router();
 
 /*
@@ -137,6 +141,59 @@ GroupRouter.get("/commonGroup/:chatUserId/:userId", Auth, async (req, res) => {
   } else {
     res.status(400).json({
       message: [],
+    });
+  }
+});
+
+GroupRouter.post("/makeUsersAdmin", Auth, async (req, res) => {
+  let { groupId, userID } = req.body;
+  if (groupId && userID) {
+    let makeAdmin = await addGroupAdmin({ groupId, userID });
+    if (makeAdmin.status) {
+      res.status(200).send({
+        makeAdmin,
+      });
+    } else {
+      res.status(400).send({
+        status: false,
+        message: "Failed to make user Admin",
+      });
+    }
+  } else {
+    res.status(400).json({
+      status: false,
+      message: "Failed to make user Admin",
+    });
+  }
+});
+
+GroupRouter.get("/getGroupUsers/:id", Auth, async (req, res) => {
+  let id = req.params.id;
+  if (id) {
+    const groupUsers = await getGroupUsers(id);
+    if (groupUsers) {
+      res.status(200).send(groupUsers);
+    } else {
+      res.status(400).json({
+        message: "Failed to add user",
+      });
+    }
+    // console.log(groupUsers);
+  }
+});
+
+GroupRouter.post("/addUsersToGroup", Auth, async (req, res) => {
+  let body = req.body;
+  const addUsers = await addUsersToGroup(body);
+  if (addUsers.status) {
+    res.status(200).json({
+      message: "User added to group successfully",
+      status: true,
+    });
+  } else {
+    res.status(400).json({
+      message: "Failed to add user to group",
+      status: false,
     });
   }
 });
