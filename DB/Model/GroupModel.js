@@ -107,8 +107,116 @@ const commonGroups = async (id) => {
   }
 };
 
+const getGroupUsers = async (id) => {
+  const getGroupUsers = await Group.findById(id);
+  if (getGroupUsers) {
+    return getGroupUsers.groupUsers;
+  } else {
+    return {
+      status: false,
+    };
+  }
+};
+
+const addGroupAdmin = async (users) => {
+  if (users) {
+    let makeAdmin = await Group.findByIdAndUpdate(
+      users.groupId,
+      {
+        $push: {
+          groupAdmin: users.userID,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (makeAdmin) {
+      return {
+        status: true,
+        makeAdmin,
+      };
+    } else {
+      return {
+        status: false,
+      };
+    }
+  }
+};
+
+const addUsersToGroup = async (usersData) => {
+  if (usersData) {
+    let { users } = usersData;
+    const getGroup = await Group.findById(mongoose.Types.ObjectId(users.id));
+
+    if (
+      getGroup.groupUsers.includes(
+        users.checkedUsers.map((e) => {
+          return e;
+        })
+      )
+    ) {
+      return {
+        status: false,
+        body: "failed to add user to group",
+      };
+    } else {
+    }
+    let addUsers = await Group.findByIdAndUpdate(
+      mongoose.Types.ObjectId(users.id),
+      {
+        $push: {
+          groupUsers: users.checkedUsers.map((e) => {
+            return e;
+          }),
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (addUsers) {
+      let addUsers = Promise.all(
+        users.checkedUsers.map(async (e) => {
+          let getUser = await User.findByIdAndUpdate(
+            e,
+            {
+              $addToSet: {
+                groups: users.id,
+              },
+            },
+            {
+              new: true,
+            }
+          );
+          if (getUser) {
+            return getUser;
+          }
+        })
+      );
+
+      let addUserResult = await addUsers;
+      if (addUserResult) {
+        return {
+          status: true,
+          body: addUserResult,
+        };
+      } else {
+        return {
+          status: false,
+          body: "failed to add user to group",
+        };
+      }
+    }
+  }
+};
 module.exports = {
   createGroup,
   getGroup,
   commonGroups,
+  addGroupAdmin,
+  getGroupUsers,
+  addUsersToGroup,
 };
