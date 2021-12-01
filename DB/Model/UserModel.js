@@ -541,6 +541,172 @@ const logUserOut = async (id) => {
     }
   }
 };
+
+const getUserData = async (id) => {
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    const user = await User.findById(id).select(
+      "-unreadMessages -userActivity -UserLastMessage -password -contactList -groups"
+    );
+    if (user) {
+      return user;
+    }
+  }
+};
+
+const updateProfile = async (body) => {
+  if (body) {
+    let { userName, userAbout, created_by } = body;
+    if (userName !== "" && userAbout !== "") {
+      // let updateUser = await User.findById(created_by);
+      let updateUser = await User.findByIdAndUpdate(
+        created_by,
+        {
+          name: userName,
+          userAbout: userAbout,
+        },
+        {
+          new: true,
+        }
+      );
+      if (updateUser) {
+        return {
+          status: true,
+          message: "Profile updated successfully",
+        };
+      } else {
+        return {
+          status: false,
+          message: "Failed to update profile",
+        };
+      }
+    } else if (userName === "") {
+      let updateUser = await User.findByIdAndUpdate(
+        created_by,
+        {
+          userAbout: userAbout,
+        },
+        {
+          new: true,
+        }
+      );
+      if (updateUser) {
+        return {
+          status: true,
+          message: "Profile updated successfully",
+        };
+      } else {
+        return {
+          status: false,
+          message: "Failed to update profile",
+        };
+      }
+    } else if (userAbout === "") {
+      let updateUser = await User.findByIdAndUpdate(
+        created_by,
+        {
+          name: userName,
+        },
+        {
+          new: true,
+        }
+      );
+      if (updateUser) {
+        return {
+          status: true,
+          message: "Profile updated successfully",
+        };
+      } else {
+        return {
+          status: false,
+          message: "Failed to update profile",
+        };
+      }
+    }
+  } else {
+    return {
+      status: false,
+      message: "Failed tp update user profile",
+    };
+  }
+};
+
+const updateProfileWithImage = async (body) => {
+  let { path } = body.file;
+  let { userName, userAbout, created_by } = body.obj;
+  if (path && userName !== "" && userAbout !== "" && created_by !== "") {
+    let updateUser = await User.findByIdAndUpdate(
+      created_by,
+      {
+        profileImage: `${process.env.PRODUCTION_SERVER}${path}`,
+        name: userName,
+        userAbout: userAbout,
+      },
+      {
+        new: true,
+      }
+    );
+    if (updateUser) {
+      return {
+        status: true,
+        message: "Profile updated successfully",
+      };
+    } else {
+      return {
+        status: false,
+        message: "Failed to update profile",
+      };
+    }
+  } else if (path && userName === "") {
+    let updateUser = await User.findByIdAndUpdate(
+      created_by,
+      {
+        profileImage: `${process.env.PRODUCTION_SERVER}${path}`,
+        userAbout: userAbout,
+      },
+      {
+        new: true,
+      }
+    );
+    if (updateUser) {
+      return {
+        status: true,
+        message: "Profile updated successfully",
+      };
+    } else {
+      return {
+        status: false,
+        message: "Failed to update profile",
+      };
+    }
+  } else if (path && userAbout === "") {
+    let updateUser = await User.findByIdAndUpdate(
+      created_by,
+      {
+        profileImage: `${process.env.PRODUCTION_SERVER}${path}`,
+        name: userName,
+      },
+      {
+        new: true,
+      }
+    );
+    if (updateUser) {
+      return {
+        status: true,
+        message: "Profile updated successfully",
+      };
+    } else {
+      return {
+        status: false,
+        message: "Failed to update profile",
+      };
+    }
+  } else {
+    return {
+      status: false,
+      message: "Failed tp update user profile",
+    };
+  }
+};
 module.exports = {
   createUser,
   addContact,
@@ -555,6 +721,9 @@ module.exports = {
   getUserGroups,
   updateUserNewMessages,
   logUserOut,
+  updateProfile,
+  getUserData,
+  updateProfileWithImage,
 };
 
 /*
