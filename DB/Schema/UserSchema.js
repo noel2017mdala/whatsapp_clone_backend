@@ -78,6 +78,11 @@ const User = new Schema({
     },
   ],
 
+  userAbout: {
+    type: String,
+    default: "Hey there! I am using WhatsApp clone",
+  },
+
   dateCreated: {
     type: Date,
     default: Date.now,

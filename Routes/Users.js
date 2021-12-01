@@ -1,6 +1,8 @@
 const { response } = require("express");
 const express = require("express");
 const validator = require("email-validator");
+const path = require("path");
+const multer = require("multer");
 const {
   createUser,
   addContact,
@@ -8,11 +10,49 @@ const {
   login,
   getContactList,
   logUserOut,
+  updateProfile,
+  getUserData,
+  updateProfileWithImage,
 } = require("../DB/Model/UserModel");
 const Auth = require("../Middleware/Auth-middleware");
 const userRouter = express.Router();
 
 const regEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+
+/*
+- Sets the destination of the file to be uploaded
+*/
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/userProfiles");
+  },
+
+  /*
+  - Renames the incoming file before being uploaded to the server
+  - this helps to easily find the file in the directory 
+  */
+  filename: (req, file, cb) => {
+    let { Uid } = req.body;
+    cb(null, `${file.originalname}-${Uid}-${path.extname(file.originalname)}`);
+  },
+});
+
+const upload = multer({
+  //Adding the storage object to Multer
+  storage: storage,
+  // Declaring the max size of the uploaded image
+  limits: {
+    fileSize: 4000000,
+  },
+
+  // restricting only images to be uploaded
+  fileFilter(req, file, cb) {
+    if (!file.originalname.match(/\.(png|jpeg|jpg)$/)) {
+      return cb(new Error("Please upload an image"));
+    }
+    cb(undefined, true);
+  },
+});
 
 const validateCreateUser = (data) => {
   let { name, email, password, phoneNumber } = data;
@@ -191,10 +231,8 @@ userRouter.put("/addContact/:id", Auth, async (req, res) => {
   }
 });
 
-userRouter.get("/getUser/:id", Auth, async (req, res) => {
+userRouter.get("/getUser/:id", async (req, res) => {
   let userId = req.params.id;
-
-  console.log(userId);
 
   if (userId) {
     await getUser(userId, (result) => {
@@ -261,7 +299,32 @@ userRouter.get("/getContactList/:id", Auth, async (req, res) => {
   //   }
   // });
 });
+userRouter.put(
+  "/updateProfile",
+  Auth,
+  upload.single("file"),
+  async (req, res) => {
+    // console.log(req.file);
+    if (req.file) {
+      let file = req.file;
+      const obj = JSON.parse(JSON.stringify(req.body));
+      let updateProfile = await updateProfileWithImage({
+        file,
+        obj,
+      });
 
+      if (updateProfile.status) {
+        res.status(200).json(updateProfile);
+      }
+    } else {
+      const obj = JSON.parse(JSON.stringify(req.body));
+      let updateUserProfile = await updateProfile(obj);
+      if (updateUserProfile.status) {
+        res.status(200).json(updateUserProfile);
+      }
+    }
+  }
+);
 userRouter.get("/logout/:id", Auth, async (req, res) => {
   if (req.params) {
     let logOutUserRes = await logUserOut(req.params.id);
@@ -274,4 +337,11 @@ userRouter.get("/logout/:id", Auth, async (req, res) => {
     }
   }
 });
+
+userRouter.get("/getUserData/:id", async (req, res) => {
+  let id = req.params.id;
+  let getUser = await getUserData(id);
+  res.send(getUser);
+});
+
 module.exports = userRouter;
