@@ -220,7 +220,7 @@ const updateGroupWithImage = async (body) => {
     let updateGroupProfile = await Group.findByIdAndUpdate(
       group_id,
       {
-        groupProfile: `${process.env.LOCAL_SERVER}${path}`,
+        groupProfile: `${process.env.PRODUCTION_SERVER}${path}`,
         groupName: groupName,
       },
       {
@@ -243,7 +243,7 @@ const updateGroupWithImage = async (body) => {
     let updateGroupProfile = await Group.findByIdAndUpdate(
       group_id,
       {
-        groupProfile: `${process.env.LOCAL_SERVER}${path}`,
+        groupProfile: `${process.env.PRODUCTION_SERVER}${path}`,
       },
       {
         new: true,
