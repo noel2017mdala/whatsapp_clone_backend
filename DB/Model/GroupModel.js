@@ -212,6 +212,101 @@ const addUsersToGroup = async (usersData) => {
     }
   }
 };
+
+const updateGroupWithImage = async (body) => {
+  let { path } = body.file;
+  let { group_id, groupName } = body.obj;
+  if (path && group_id !== "" && groupName !== "") {
+    let updateGroupProfile = await Group.findByIdAndUpdate(
+      group_id,
+      {
+        groupProfile: `${process.env.LOCAL_SERVER}${path}`,
+        groupName: groupName,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (updateGroupProfile) {
+      return {
+        status: true,
+        message: "Profile updated successfully",
+      };
+    } else {
+      return {
+        status: false,
+        message: "Failed to update profile",
+      };
+    }
+  } else if (path && groupName === "") {
+    let updateGroupProfile = await Group.findByIdAndUpdate(
+      group_id,
+      {
+        groupProfile: `${process.env.LOCAL_SERVER}${path}`,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (updateGroupProfile) {
+      return {
+        status: true,
+        message: "Profile updated successfully",
+      };
+    } else {
+      return {
+        status: false,
+        message: "Failed to update profile",
+      };
+    }
+  } else {
+    return {
+      status: false,
+      message: "Failed to update profile",
+    };
+  }
+};
+
+const updateGroupProfile = async (body) => {
+  if (body) {
+    let { group_id, groupName } = body;
+    if (groupName !== "") {
+      let updateGroup = await Group.findByIdAndUpdate(
+        group_id,
+        {
+          groupName: groupName,
+        },
+        {
+          new: true,
+        }
+      );
+
+      if (updateGroup) {
+        return {
+          status: true,
+          message: "Profile updated successfully",
+        };
+      } else {
+        return {
+          status: false,
+          message: "Failed to update profile",
+        };
+      }
+    } else {
+      return {
+        status: false,
+        message: "Failed to update profile",
+      };
+    }
+  } else {
+    return {
+      status: false,
+      message: "Failed to update profile",
+    };
+  }
+};
 module.exports = {
   createGroup,
   getGroup,
@@ -219,4 +314,6 @@ module.exports = {
   addGroupAdmin,
   getGroupUsers,
   addUsersToGroup,
+  updateGroupProfile,
+  updateGroupWithImage,
 };

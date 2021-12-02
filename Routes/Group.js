@@ -10,6 +10,8 @@ const {
   addGroupAdmin,
   getGroupUsers,
   addUsersToGroup,
+  updateGroupProfile,
+  updateGroupWithImage,
 } = require("../DB/Model/GroupModel");
 const Auth = require("../Middleware/Auth-middleware");
 const { response } = require("express");
@@ -197,4 +199,36 @@ GroupRouter.post("/addUsersToGroup", Auth, async (req, res) => {
     });
   }
 });
+
+GroupRouter.put(
+  "/updateGroupProfile",
+  Auth,
+  upload.single("file"),
+  async (req, res) => {
+    if (req.file) {
+      let file = req.file;
+      const obj = JSON.parse(JSON.stringify(req.body));
+
+      let updateGroup = await updateGroupWithImage({ obj, file });
+      if (updateGroup.status) {
+        res.status(200).json(updateGroup);
+      }
+    } else {
+      const obj = JSON.parse(JSON.stringify(req.body));
+      let updateGroup = await updateGroupProfile(obj);
+
+      if (updateGroup.status) {
+        res.status(200).json({
+          message: "Profile updated successfully",
+          status: true,
+        });
+      } else {
+        res.status(400).json({
+          message: "Failed to add user to group",
+          status: false,
+        });
+      }
+    }
+  }
+);
 module.exports = GroupRouter;
