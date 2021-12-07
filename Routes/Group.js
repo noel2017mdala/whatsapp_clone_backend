@@ -12,6 +12,7 @@ const {
   addUsersToGroup,
   updateGroupProfile,
   updateGroupWithImage,
+  getGroupLastMessage,
 } = require("../DB/Model/GroupModel");
 const Auth = require("../Middleware/Auth-middleware");
 const { response } = require("express");
@@ -231,4 +232,20 @@ GroupRouter.put(
     }
   }
 );
+
+GroupRouter.get("/groupLastMessage/:id", async (req, res) => {
+  const id = req.params.id;
+  if (id) {
+    console.log(id);
+    let getGroupMessage = await getGroupLastMessage(id);
+    if (getGroupMessage) {
+      res.status(200).send(getGroupMessage);
+    } else {
+      res.status(200).json({
+        status: false,
+        message: "Failed to get group messages",
+      });
+    }
+  }
+});
 module.exports = GroupRouter;

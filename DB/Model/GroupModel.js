@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const GroupSchema = require("../Schema/GroupSchema");
 const Group = mongoose.model("Group", GroupSchema);
+const GroupMessageSchema = require("../Schema/GroupMessagesSchema");
+const GroupMessages = mongoose.model("GroupMessage", GroupMessageSchema);
 const UserSchema = require("../Schema/UserSchema");
 const User = mongoose.model("User", UserSchema);
 
@@ -307,6 +309,15 @@ const updateGroupProfile = async (body) => {
     };
   }
 };
+const getGroupLastMessage = async (id) => {
+  if (id) {
+    let group = await GroupMessages.find({ groupId: id });
+    // console.log(group[group.length - 1]);
+    if (group.length > 0) {
+      return group[group.length - 1];
+    }
+  }
+};
 module.exports = {
   createGroup,
   getGroup,
@@ -316,4 +327,5 @@ module.exports = {
   addUsersToGroup,
   updateGroupProfile,
   updateGroupWithImage,
+  getGroupLastMessage,
 };
