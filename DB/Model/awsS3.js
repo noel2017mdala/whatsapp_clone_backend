@@ -21,7 +21,6 @@ const uploadObject = (filePath, keyName, bucketName, cb) => {
 
   s3.upload(fileMetaData, (err, data) => {
     if (err) {
-      console.log(err)
       cb({
         status: false,
         message: "Failed to upload image",
@@ -54,6 +53,7 @@ const getImage = async (id, bucketName, cb) => {
       //   status: false,
       //   message: "Failed to retrieve the required image",
       // };
+      console.log(err);
       cb({
         status: false,
         message: "Failed to retrieve the required image",
