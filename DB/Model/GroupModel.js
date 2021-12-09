@@ -221,41 +221,6 @@ const updateGroupWithImage = async (body, cb) => {
   let { path } = body.file;
   let { Uid } = body.obj;
   let { group_id, groupName } = body.obj;
-<<<<<<< HEAD
-  if (path && group_id !== "" && groupName !== "") {
-    let updateGroupProfile = await Group.findByIdAndUpdate(
-      group_id,
-      {
-        groupProfile: `${process.env.PRODUCTION_SERVER}${path}`,
-        groupName: groupName,
-      },
-      {
-        new: true,
-      }
-    );
-
-    if (updateGroupProfile) {
-      return {
-        status: true,
-        message: "Profile updated successfully",
-      };
-    } else {
-      return {
-        status: false,
-        message: "Failed to update profile",
-      };
-    }
-  } else if (path && groupName === "") {
-    let updateGroupProfile = await Group.findByIdAndUpdate(
-      group_id,
-      {
-        groupProfile: `${process.env.PRODUCTION_SERVER}${path}`,
-      },
-      {
-        new: true,
-      }
-    );
-=======
 
   await uploadObject(path, Uid, process.env.BUCKET_NAME, async (data) => {
     if (data.status) {
@@ -271,7 +236,6 @@ const updateGroupWithImage = async (body, cb) => {
             new: true,
           }
         );
->>>>>>> dev_branch
 
         if (updateGroupProfile) {
           cb({
