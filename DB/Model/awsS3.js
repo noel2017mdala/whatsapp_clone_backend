@@ -53,7 +53,7 @@ const getImage = async (id, bucketName, cb) => {
       //   status: false,
       //   message: "Failed to retrieve the required image",
       // };
-      console.log(err);
+
       cb({
         status: false,
         message: "Failed to retrieve the required image",
