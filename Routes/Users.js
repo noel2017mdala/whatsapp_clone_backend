@@ -1,6 +1,7 @@
 const { response } = require("express");
 const express = require("express");
 const validator = require("email-validator");
+require("dotenv").config();
 const path = require("path");
 const multer = require("multer");
 const {
@@ -14,10 +15,12 @@ const {
   getUserData,
   updateProfileWithImage,
 } = require("../DB/Model/UserModel");
+const { getImage } = require("../DB/Model/awsS3");
 const Auth = require("../Middleware/Auth-middleware");
 const userRouter = express.Router();
 
 const regEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+const bucketName = process.env.BUCKET_NAME;
 
 /*
 - Sets the destination of the file to be uploaded
@@ -48,7 +51,10 @@ const upload = multer({
   // restricting only images to be uploaded
   fileFilter(req, file, cb) {
     if (!file.originalname.match(/\.(png|jpeg|jpg)$/)) {
-      return cb(new Error("Please upload an image"));
+      return cb({
+        status: false,
+        message: "Please user the correct image format",
+      });
     }
     cb(undefined, true);
   },
@@ -308,14 +314,26 @@ userRouter.put(
     if (req.file) {
       let file = req.file;
       const obj = JSON.parse(JSON.stringify(req.body));
-      let updateProfile = await updateProfileWithImage({
-        file,
-        obj,
-      });
-
-      if (updateProfile.status) {
-        res.status(200).json(updateProfile);
-      }
+      await updateProfileWithImage(
+        {
+          file,
+          obj,
+        },
+        (response) => {
+          // console.log(res);
+          if (response.status) {
+            res.status(200).json({
+              status: true,
+              message: "Profile updated successfully",
+            });
+          } else {
+            res.status(400).json({
+              status: false,
+              message: "Failed to update profile",
+            });
+          }
+        }
+      );
     } else {
       const obj = JSON.parse(JSON.stringify(req.body));
       let updateUserProfile = await updateProfile(obj);
@@ -344,4 +362,31 @@ userRouter.get("/getUserData/:id", async (req, res) => {
   res.send(getUser);
 });
 
+userRouter.get("/getImage/:imageId", async (req, res) => {
+  if (req.params.imageId) {
+    const { imageId } = req.params;
+    // await getImage(imageId, bucketName, (data) => {
+    //   console.log(data);
+
+    //   return;
+    //   if (data.status) {
+    //     const b64 = Buffer.from(data.res.Body).toString("base64");
+    //     const mimeType = "image/png";
+    //     // res.send(data.Body);
+    //     res.send(`<img src="data:${mimeType};base64,${b64}" />`);
+    //   }
+    // });
+
+    const demo = getImage(imageId, bucketName, async (data) => {
+      if (data.status) {
+        let image = data.data;
+        (await image).pipe(res);
+      } else {
+        res.status(400).json({
+          message: "Image not found",
+        });
+      }
+    });
+  }
+});
 module.exports = userRouter;

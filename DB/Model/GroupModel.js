@@ -1,8 +1,12 @@
+const fs = require("fs");
 const mongoose = require("mongoose");
 const GroupSchema = require("../Schema/GroupSchema");
 const Group = mongoose.model("Group", GroupSchema);
+const GroupMessageSchema = require("../Schema/GroupMessagesSchema");
+const GroupMessages = mongoose.model("GroupMessage", GroupMessageSchema);
 const UserSchema = require("../Schema/UserSchema");
 const User = mongoose.model("User", UserSchema);
+const { uploadObject } = require("./awsS3");
 
 const createGroup = async (groupBody) => {
   let { description, groupUsers, groupImage, created_by } = groupBody;
@@ -213,9 +217,11 @@ const addUsersToGroup = async (usersData) => {
   }
 };
 
-const updateGroupWithImage = async (body) => {
+const updateGroupWithImage = async (body, cb) => {
   let { path } = body.file;
+  let { Uid } = body.obj;
   let { group_id, groupName } = body.obj;
+<<<<<<< HEAD
   if (path && group_id !== "" && groupName !== "") {
     let updateGroupProfile = await Group.findByIdAndUpdate(
       group_id,
@@ -249,24 +255,85 @@ const updateGroupWithImage = async (body) => {
         new: true,
       }
     );
+=======
 
-    if (updateGroupProfile) {
-      return {
-        status: true,
-        message: "Profile updated successfully",
-      };
-    } else {
-      return {
-        status: false,
-        message: "Failed to update profile",
-      };
+  await uploadObject(path, Uid, process.env.BUCKET_NAME, async (data) => {
+    if (data.status) {
+      fs.unlinkSync(path);
+      if (path && group_id !== "" && groupName !== "") {
+        let updateGroupProfile = await Group.findByIdAndUpdate(
+          group_id,
+          {
+            groupProfile: Uid,
+            groupName: groupName,
+          },
+          {
+            new: true,
+          }
+        );
+>>>>>>> dev_branch
+
+        if (updateGroupProfile) {
+          cb({
+            status: true,
+            message: "Profile updated successfully",
+          });
+          // return {
+          //   status: true,
+          //   message: "Profile updated successfully",
+          // };
+        } else {
+          cb({
+            status: false,
+            message: "Failed to update profile",
+          });
+          // return {
+          //   status: false,
+          //   message: "Failed to update profile",
+          // };
+        }
+      } else if (path && groupName === "") {
+        let updateGroupProfile = await Group.findByIdAndUpdate(
+          group_id,
+          {
+            groupProfile: Uid,
+          },
+          {
+            new: true,
+          }
+        );
+
+        if (updateGroupProfile) {
+          cb({
+            status: true,
+            message: "Profile updated successfully",
+          });
+          // return {
+          //   status: true,
+          //   message: "Profile updated successfully",
+          // };
+        } else {
+          cb({
+            status: false,
+            message: "Failed to update profile",
+          });
+          // return {
+          //   status: false,
+          //   message: "Failed to update profile",
+          // };
+        }
+      } else {
+        cb({
+          status: false,
+          message: "Failed to update profile",
+        });
+        // return {
+        //   status: false,
+        //   message: "Failed to update profile",
+        // };
+      }
     }
-  } else {
-    return {
-      status: false,
-      message: "Failed to update profile",
-    };
-  }
+  });
 };
 
 const updateGroupProfile = async (body) => {
@@ -307,6 +374,33 @@ const updateGroupProfile = async (body) => {
     };
   }
 };
+
+const getUserGroups = async (id) => {
+  // const userGroups = await User.findById(id);
+  // console.log(userGroups.groups);
+  const userGroups = await Group.find({ groupUsers: { $in: [id] } });
+  if (userGroups) {
+    return {
+      status: true,
+      userGroups,
+    };
+  } else {
+    return {
+      status: false,
+      message: "Failed to retrieve group data",
+    };
+  }
+};
+
+const getGroupLastMessage = async (id) => {
+  if (id) {
+    let group = await GroupMessages.find({ groupId: id });
+    // console.log(group[group.length - 1]);
+    if (group.length > 0) {
+      return group[group.length - 1];
+    }
+  }
+};
 module.exports = {
   createGroup,
   getGroup,
@@ -316,4 +410,6 @@ module.exports = {
   addUsersToGroup,
   updateGroupProfile,
   updateGroupWithImage,
+  getGroupLastMessage,
+  getUserGroups,
 };

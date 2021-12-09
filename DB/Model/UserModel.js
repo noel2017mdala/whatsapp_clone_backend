@@ -1,3 +1,4 @@
+const fs = require("fs");
 const mongoose = require("mongoose");
 const UserSchema = require("../Schema/UserSchema");
 const MessagesSchema = require("../Schema/MessageSchema");
@@ -8,6 +9,7 @@ const Messages = mongoose.model("Messages", MessagesSchema);
 const ObjectID = require("mongodb").ObjectID;
 const { getUserMessages } = require("./MessageModel");
 const { getTime } = require("../../helper/getTime");
+const { uploadObject } = require("./awsS3");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -224,7 +226,10 @@ const addContact = async (id, body, cb) => {
         });
       }
     } else {
-      console.log("contact not found");
+      cb({
+        message: "Failed to add contact contact was not found",
+        status: false,
+      });
     }
 
     return;
@@ -630,83 +635,139 @@ const updateProfile = async (body) => {
   }
 };
 
-const updateProfileWithImage = async (body) => {
+const updateProfileWithImage = async (body, cb) => {
   let { path } = body.file;
+  let { Uid } = body.obj;
   let { userName, userAbout, created_by } = body.obj;
-  if (path && userName !== "" && userAbout !== "" && created_by !== "") {
-    let updateUser = await User.findByIdAndUpdate(
-      created_by,
-      {
-        profileImage: `${process.env.PRODUCTION_SERVER}${path}`,
-        name: userName,
-        userAbout: userAbout,
-      },
-      {
-        new: true,
+
+  await uploadObject(path, Uid, process.env.BUCKET_NAME, async (data) => {
+    fs.unlinkSync(path);
+    if (path && userName !== "" && userAbout !== "" && created_by !== "") {
+      let updateUser = await User.findByIdAndUpdate(
+        created_by,
+        {
+          profileImage: Uid,
+          name: userName,
+          userAbout: userAbout,
+        },
+        {
+          new: true,
+        }
+      );
+      if (updateUser) {
+        cb({
+          status: true,
+          message: "Profile updated successfully",
+        });
+        // return {
+        //   status: true,
+        //   message: "Profile updated successfully",
+        // };
+      } else {
+        cb({
+          status: false,
+          message: "Failed to update profile",
+        });
+        // return {
+        //   status: false,
+        //   message: "Failed to update profile",
+        // };
       }
-    );
-    if (updateUser) {
-      return {
-        status: true,
-        message: "Profile updated successfully",
-      };
-    } else {
-      return {
-        status: false,
-        message: "Failed to update profile",
-      };
-    }
-  } else if (path && userName === "") {
-    let updateUser = await User.findByIdAndUpdate(
-      created_by,
-      {
-        profileImage: `${process.env.PRODUCTION_SERVER}${path}`,
-        userAbout: userAbout,
-      },
-      {
-        new: true,
+    } else if (path && userName === "" && userAbout !== "") {
+      let updateUser = await User.findByIdAndUpdate(
+        created_by,
+        {
+          profileImage: Uid,
+          userAbout: userAbout,
+        },
+        {
+          new: true,
+        }
+      );
+      if (updateUser) {
+        cb({
+          status: true,
+          message: "Profile updated successfully",
+        });
+        // return {
+        //   status: true,
+        //   message: "Profile updated successfully",
+        // };
+      } else {
+        cb({
+          status: false,
+          message: "Failed to update profile",
+        });
+        // return {
+        //   status: false,
+        //   message: "Failed to update profile",
+        // };
       }
-    );
-    if (updateUser) {
-      return {
-        status: true,
-        message: "Profile updated successfully",
-      };
-    } else {
-      return {
-        status: false,
-        message: "Failed to update profile",
-      };
-    }
-  } else if (path && userAbout === "") {
-    let updateUser = await User.findByIdAndUpdate(
-      created_by,
-      {
-        profileImage: `${process.env.PRODUCTION_SERVER}${path}`,
-        name: userName,
-      },
-      {
-        new: true,
+    } else if (path && userAbout === "" && userName !== "") {
+      let updateUser = await User.findByIdAndUpdate(
+        created_by,
+        {
+          profileImage: Uid,
+          name: userName,
+        },
+        {
+          new: true,
+        }
+      );
+      if (updateUser) {
+        cb({
+          status: true,
+          message: "Profile updated successfully",
+        });
+        // return {
+        //   status: true,
+        //   message: "Profile updated successfully",
+        // };
+      } else {
+        cb({
+          status: false,
+          message: "Failed to update profile",
+        });
+        // return {
+        //   status: false,
+        //   message: "Failed to update profile",
+        // };
       }
-    );
-    if (updateUser) {
-      return {
-        status: true,
-        message: "Profile updated successfully",
-      };
+    } else if (path) {
+      let updateUser = await User.findByIdAndUpdate(
+        created_by,
+        {
+          profileImage: Uid,
+        },
+        {
+          new: true,
+        }
+      );
+
+      if (updateUser) {
+        cb({
+          status: true,
+          message: "Profile updated successfully",
+        });
+        // return {
+        //   status: true,
+        //   message: "Profile updated successfully",
+        // };
+      } else {
+        cb({
+          status: false,
+          message: "Failed to update profile",
+        });
+      }
     } else {
-      return {
+      cb({
         status: false,
-        message: "Failed to update profile",
-      };
+        message: "Failed tp update user profile",
+      });
     }
-  } else {
-    return {
-      status: false,
-      message: "Failed tp update user profile",
-    };
-  }
+  });
 };
+
 module.exports = {
   createUser,
   addContact,
