@@ -237,7 +237,7 @@ userRouter.put("/addContact/:id", Auth, async (req, res) => {
   }
 });
 
-userRouter.get("/getUser/:id", async (req, res) => {
+userRouter.get("/getUser/:id", Auth, async (req, res) => {
   let userId = req.params.id;
 
   if (userId) {
@@ -356,7 +356,7 @@ userRouter.get("/logout/:id", Auth, async (req, res) => {
   }
 });
 
-userRouter.get("/getUserData/:id", async (req, res) => {
+userRouter.get("/getUserData/:id", Auth, async (req, res) => {
   let id = req.params.id;
   let getUser = await getUserData(id);
   res.send(getUser);
