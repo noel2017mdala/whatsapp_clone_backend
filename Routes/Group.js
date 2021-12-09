@@ -13,6 +13,7 @@ const {
   updateGroupProfile,
   updateGroupWithImage,
   getGroupLastMessage,
+  getUserGroups,
 } = require("../DB/Model/GroupModel");
 const Auth = require("../Middleware/Auth-middleware");
 const { response } = require("express");
@@ -210,10 +211,13 @@ GroupRouter.put(
       let file = req.file;
       const obj = JSON.parse(JSON.stringify(req.body));
 
-      let updateGroup = await updateGroupWithImage({ obj, file });
-      if (updateGroup.status) {
-        res.status(200).json(updateGroup);
-      }
+      let updateGroup = await updateGroupWithImage({ obj, file }, (data) => {
+        if (data.status) {
+          res.status(200).json(data);
+        } else {
+          res.status(400).json(data);
+        }
+      });
     } else {
       const obj = JSON.parse(JSON.stringify(req.body));
       let updateGroup = await updateGroupProfile(obj);
@@ -232,6 +236,13 @@ GroupRouter.put(
     }
   }
 );
+
+GroupRouter.get("/userGroups/:id", async (req, res) => {
+  const getUserCurrentGroups = await getUserGroups(req.params.id);
+  if (getUserCurrentGroups.status) {
+    res.send(getUserCurrentGroups.userGroups);
+  }
+});
 
 GroupRouter.get("/groupLastMessage/:id", async (req, res) => {
   const id = req.params.id;
