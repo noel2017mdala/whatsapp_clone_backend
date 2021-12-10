@@ -60,11 +60,7 @@ GroupRouter.post(
   Auth,
   upload.single("file"),
   async (req, res) => {
-    // console.log(req.file);
-    // console.log(req.body);
-    // return;
     if (req.file) {
-      //Parameters provided by the client
       let { Uid, users, description, created_by } = req.body;
       if (Uid && users && description && created_by) {
         let userData = users.split(",");
@@ -84,10 +80,20 @@ GroupRouter.post(
             groupUsers: userData,
             groupImage: icon,
             created_by,
+            Uid,
           };
 
           // Pass the parameters to the createGroup for Group creation
-          let newGroup = await createGroup(groupInfo);
+          let newGroup = await createGroup(groupInfo, (results) => {
+            if (results.status) {
+              res.status(200).send(results);
+            } else {
+              res.status(400).json({
+                message: "Failed to add users to group",
+              });
+            }
+          });
+          return;
           if (newGroup) {
             res.status(200).send(newGroup);
           } else {
