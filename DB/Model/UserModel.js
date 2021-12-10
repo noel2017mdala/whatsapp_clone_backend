@@ -214,7 +214,7 @@ const addContact = async (id, body, cb) => {
           if (updateContacts) {
             console.log("contact added successfully");
             cb({
-              updateContacts,
+              status: true,
               message: "Contact added successfully",
             });
           }

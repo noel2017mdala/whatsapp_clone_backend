@@ -206,5 +206,5 @@ app.get("*", (req, res) => {
   res.status(404).sendFile(__dirname + "/Templates/404/404.html");
 });
 http.listen(port, () => {
-  console.log(`Server started on  http://localhost:${port}`);
+  console.log(`Server started on  http://localhost:${port} `);
 });
