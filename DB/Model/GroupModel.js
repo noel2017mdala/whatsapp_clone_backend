@@ -8,51 +8,69 @@ const UserSchema = require("../Schema/UserSchema");
 const User = mongoose.model("User", UserSchema);
 const { uploadObject } = require("./awsS3");
 
-const createGroup = async (groupBody) => {
-  let { description, groupUsers, groupImage, created_by } = groupBody;
+const createGroup = async (groupBody, cb) => {
+  let { description, groupUsers, groupImage, created_by, Uid } = groupBody;
+
   if (
     description !== "" &&
     groupUsers !== "" &&
     groupImage !== "" &&
     created_by !== ""
   ) {
-    let group = new Group({
-      groupName: description,
-      groupProfile: `https://node-whatsapp-backend.herokuapp.com/${groupImage}`,
-      groupUsers: groupUsers,
-      createdBy: created_by,
-      groupAdmin: created_by,
-    });
-    group = await group.save();
+    await uploadObject(
+      groupImage,
+      Uid,
+      process.env.BUCKET_NAME,
+      async (data) => {
+        if (data.status) {
+          fs.unlinkSync(groupImage);
 
-    if (group) {
-      // let groupId = group._id;
-      let addUsersToGroup = Promise.all(
-        groupUsers.map(async (e) => {
-          let getUser = await User.findByIdAndUpdate(
-            e,
-            {
-              $addToSet: {
-                groups: group._id,
-              },
-            },
-            {
-              new: true,
+          let group = new Group({
+            groupName: description,
+            groupProfile: Uid,
+            groupUsers: groupUsers,
+            createdBy: created_by,
+            groupAdmin: created_by,
+          });
+          group = await group.save();
+
+          if (group) {
+            // let groupId = group._id;
+            let addUsersToGroup = Promise.all(
+              groupUsers.map(async (e) => {
+                let getUser = await User.findByIdAndUpdate(
+                  e,
+                  {
+                    $addToSet: {
+                      groups: group._id,
+                    },
+                  },
+                  {
+                    new: true,
+                  }
+                );
+                if (getUser) {
+                  return getUser;
+                }
+              })
+            );
+            let userGroup = await addUsersToGroup;
+            if (userGroup) {
+              cb({
+                status: true,
+                message: "group created successfully",
+              });
             }
-          );
-          if (getUser) {
-            return getUser;
+            // let getUser = User.findById()
+          } else {
+            cb({
+              status: false,
+              message: "Failed to create group",
+            });
           }
-        })
-      );
-      let userGroup = await addUsersToGroup;
-      if (userGroup) {
-        return userGroup;
+        }
       }
-      // let getUser = User.findById()
-    } else {
-      console.log("failed to create group");
-    }
+    );
   }
 };
 
@@ -340,9 +358,8 @@ const updateGroupProfile = async (body) => {
 };
 
 const getUserGroups = async (id) => {
-  // const userGroups = await User.findById(id);
-  // console.log(userGroups.groups);
   const userGroups = await Group.find({ groupUsers: { $in: [id] } });
+
   if (userGroups) {
     return {
       status: true,
@@ -359,7 +376,7 @@ const getUserGroups = async (id) => {
 const getGroupLastMessage = async (id) => {
   if (id) {
     let group = await GroupMessages.find({ groupId: id });
-    // console.log(group[group.length - 1]);
+    console.log(group[group.length - 1]);
     if (group.length > 0) {
       return group[group.length - 1];
     }
