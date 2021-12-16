@@ -163,7 +163,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: process.env.PRODUCTION,
+    origin: process.env.DEVELOPMENT,
     credentials: true,
   })
 );
@@ -185,7 +185,7 @@ app.use(`${process.env.API_URL}/group/chat`, GroupMessages);
 
 // Allow CORS
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", process.env.PRODUCTION);
+  res.header("Access-Control-Allow-Origin", process.env.DEVELOPMENT);
   res.header("Access-Control-Allow-Credentials", true);
   res.header(
     "Access-Control-Allow-Headers",
@@ -206,5 +206,5 @@ app.get("*", (req, res) => {
   res.status(404).sendFile(__dirname + "/Templates/404/404.html");
 });
 http.listen(port, () => {
-  console.log(`Server started on  http://localhost:${port} `);
+  console.log(`Server started on  http://localhost:${port}`);
 });

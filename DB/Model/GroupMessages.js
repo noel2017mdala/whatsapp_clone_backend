@@ -22,7 +22,16 @@ const createGroupMessage = async (body) => {
     ...body,
     timeSent: getTime(),
   }).save();
-  if (createMessage) {
+
+  let updateGroup = await Group.findByIdAndUpdate(
+    body.to,
+    {
+      groupLastMessage: body,
+    },
+    { new: true }
+  );
+
+  if (createMessage && updateGroup) {
     return createMessage;
   } else {
     return false;

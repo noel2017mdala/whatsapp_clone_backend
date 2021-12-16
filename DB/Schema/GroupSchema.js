@@ -35,7 +35,9 @@ const Group = new Schema({
       required: true,
     },
   ],
-
+  groupLastMessage: {
+    type: Object,
+  },
   dateCreated: {
     type: Date,
     default: Date.now(),
