@@ -163,7 +163,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: process.env.DEVELOPMENT,
+    origin: process.env.PRODUCTION,
     credentials: true,
   })
 );
@@ -185,7 +185,7 @@ app.use(`${process.env.API_URL}/group/chat`, GroupMessages);
 
 // Allow CORS
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", process.env.DEVELOPMENT);
+  res.header("Access-Control-Allow-Origin", process.env.PRODUCTION);
   res.header("Access-Control-Allow-Credentials", true);
   res.header(
     "Access-Control-Allow-Headers",
