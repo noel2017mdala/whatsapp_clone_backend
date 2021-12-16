@@ -40,12 +40,22 @@ const createUser = async (userInfo, cb) => {
       });
       user = await user.save();
       if (user) {
-        cb(user);
+        cb({
+          status: true,
+          message: "user created successfully",
+        });
       } else {
-        cb(false);
+        cb({
+          status: false,
+          message: "Failed to create user",
+        });
       }
     } else {
-      cb(false);
+      cb({
+        status: true,
+        message:
+          "The Email or Phone number is already registered with another user",
+      });
     }
   }
 };

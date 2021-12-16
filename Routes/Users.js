@@ -88,15 +88,12 @@ userRouter.post("/createUser", async (req, res) => {
   if (createUserValidator) {
     if (body) {
       await createUser(body, (result) => {
-        if (result) {
+        if (result.status) {
           res.status(200).send({
             result,
-            status: true,
-            message: "user created successfully",
           });
         } else {
           res.status(400).json({
-            message: "Failed to create user !!",
             result,
           });
         }
@@ -137,6 +134,7 @@ userRouter.post("/login", async (req, res) => {
 
   if (getValidation) {
     const loinDetails = await login(body);
+    console.log(loinDetails);
     if (loinDetails) {
       let { userDetails, token } = loinDetails;
 
