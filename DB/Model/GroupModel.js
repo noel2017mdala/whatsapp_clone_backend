@@ -11,66 +11,64 @@ const { uploadObject } = require("./awsS3");
 const createGroup = async (groupBody, cb) => {
   let { description, groupUsers, groupImage, created_by, Uid } = groupBody;
 
+  let newPath = `public/userProfiles/${Uid}.png`;
+
   if (
     description !== "" &&
     groupUsers !== "" &&
     groupImage !== "" &&
     created_by !== ""
   ) {
-    await uploadObject(
-      groupImage,
-      Uid,
-      process.env.BUCKET_NAME,
-      async (data) => {
-        if (data.status) {
-          fs.unlinkSync(groupImage);
+    await uploadObject(newPath, Uid, process.env.BUCKET_NAME, async (data) => {
+      if (data.status) {
+        fs.unlinkSync(groupImage);
+        fs.unlinkSync(newPath);
 
-          let group = new Group({
-            groupName: description,
-            groupProfile: Uid,
-            groupUsers: groupUsers,
-            createdBy: created_by,
-            groupAdmin: created_by,
-          });
-          group = await group.save();
+        let group = new Group({
+          groupName: description,
+          groupProfile: Uid,
+          groupUsers: groupUsers,
+          createdBy: created_by,
+          groupAdmin: created_by,
+        });
+        group = await group.save();
 
-          if (group) {
-            // let groupId = group._id;
-            let addUsersToGroup = Promise.all(
-              groupUsers.map(async (e) => {
-                let getUser = await User.findByIdAndUpdate(
-                  e,
-                  {
-                    $addToSet: {
-                      groups: group._id,
-                    },
+        if (group) {
+          // let groupId = group._id;
+          let addUsersToGroup = Promise.all(
+            groupUsers.map(async (e) => {
+              let getUser = await User.findByIdAndUpdate(
+                e,
+                {
+                  $addToSet: {
+                    groups: group._id,
                   },
-                  {
-                    new: true,
-                  }
-                );
-                if (getUser) {
-                  return getUser;
+                },
+                {
+                  new: true,
                 }
-              })
-            );
-            let userGroup = await addUsersToGroup;
-            if (userGroup) {
-              cb({
-                status: true,
-                message: "group created successfully",
-              });
-            }
-            // let getUser = User.findById()
-          } else {
+              );
+              if (getUser) {
+                return getUser;
+              }
+            })
+          );
+          let userGroup = await addUsersToGroup;
+          if (userGroup) {
             cb({
-              status: false,
-              message: "Failed to create group",
+              status: true,
+              message: "group created successfully",
             });
           }
+          // let getUser = User.findById()
+        } else {
+          cb({
+            status: false,
+            message: "Failed to create group",
+          });
         }
       }
-    );
+    });
   }
 };
 
@@ -239,15 +237,19 @@ const updateGroupWithImage = async (body, cb) => {
   let { path } = body.file;
   let { Uid } = body.obj;
   let { group_id, groupName } = body.obj;
+  let { genId } = body;
 
-  await uploadObject(path, Uid, process.env.BUCKET_NAME, async (data) => {
+  let newPath = `public/userProfiles/${genId}.png`;
+
+  await uploadObject(newPath, genId, process.env.BUCKET_NAME, async (data) => {
     if (data.status) {
       fs.unlinkSync(path);
+      fs.unlinkSync(newPath);
       if (path && group_id !== "" && groupName !== "") {
         let updateGroupProfile = await Group.findByIdAndUpdate(
           group_id,
           {
-            groupProfile: Uid,
+            groupProfile: genId,
             groupName: groupName,
           },
           {

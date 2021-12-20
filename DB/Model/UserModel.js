@@ -648,15 +648,18 @@ const updateProfile = async (body) => {
 const updateProfileWithImage = async (body, cb) => {
   let { path } = body.file;
   let { Uid } = body.obj;
+  let { genId } = body;
   let { userName, userAbout, created_by } = body.obj;
+  let newPath = `public/userProfiles/${genId}.png`;
 
-  await uploadObject(path, Uid, process.env.BUCKET_NAME, async (data) => {
+  await uploadObject(newPath, genId, process.env.BUCKET_NAME, async (data) => {
     fs.unlinkSync(path);
-    if (path && userName !== "" && userAbout !== "" && created_by !== "") {
+    fs.unlinkSync(newPath);
+    if (newPath && userName !== "" && userAbout !== "" && created_by !== "") {
       let updateUser = await User.findByIdAndUpdate(
         created_by,
         {
-          profileImage: Uid,
+          profileImage: genId,
           name: userName,
           userAbout: userAbout,
         },
