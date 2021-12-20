@@ -1,4 +1,5 @@
 const express = require("express");
+const sharp = require("sharp");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -70,6 +71,11 @@ GroupRouter.post(
         let icon = `public/userProfiles/${
           req.file.originalname
         }-${Uid}-${path.extname(req.file.originalname)}`;
+
+        const uploadSharp = await sharp(icon)
+          .resize({ width: 200, height: 200 })
+          .png()
+          .toFile(`public/userProfiles/${Uid}.png`);
 
         /*
   Verifying if the image was uploaded before creating the group
@@ -216,14 +222,25 @@ GroupRouter.put(
     if (req.file) {
       let file = req.file;
       const obj = JSON.parse(JSON.stringify(req.body));
+      let genId = obj.Uid;
+      const uploadSharp = await sharp(file.path)
+        .resize({ width: 200, height: 200 })
+        .png()
+        .toFile(`public/userProfiles/${genId}.png`);
 
-      let updateGroup = await updateGroupWithImage({ obj, file }, (data) => {
-        if (data.status) {
-          res.status(200).json(data);
-        } else {
-          res.status(400).json(data);
+      // console.log(file);
+      // console.log(obj);
+      // console.log(uploadSharp);
+      let updateGroup = await updateGroupWithImage(
+        { obj, file, genId },
+        (data) => {
+          if (data.status) {
+            res.status(200).json(data);
+          } else {
+            res.status(400).json(data);
+          }
         }
-      });
+      );
     } else {
       const obj = JSON.parse(JSON.stringify(req.body));
       let updateGroup = await updateGroupProfile(obj);

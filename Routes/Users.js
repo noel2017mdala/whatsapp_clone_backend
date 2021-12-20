@@ -1,6 +1,7 @@
 const { response } = require("express");
 const express = require("express");
 const validator = require("email-validator");
+const sharp = require("sharp");
 require("dotenv").config();
 const path = require("path");
 const multer = require("multer");
@@ -312,10 +313,17 @@ userRouter.put(
     if (req.file) {
       let file = req.file;
       const obj = JSON.parse(JSON.stringify(req.body));
+      let genId = req.body.Uid;
+      const uploadSharp = await sharp(file.path)
+        .resize({ width: 200, height: 200 })
+        .png()
+        .toFile(`public/userProfiles/${genId}.png`);
+
       await updateProfileWithImage(
         {
           file,
           obj,
+          genId,
         },
         (response) => {
           // console.log(res);
