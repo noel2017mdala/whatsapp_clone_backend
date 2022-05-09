@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 let cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
 const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
@@ -12,6 +13,8 @@ const {
   getUserBySocket,
   getUserGroups,
   updateUserNewMessages,
+  updateMobileId,
+  getUserTokens,
 } = require("./DB/Model/UserModel");
 
 const { createMessage } = require("./DB/Model/MessageModel");
@@ -38,6 +41,8 @@ io.on("connection", (socket) => {
 
   socket.on("message-sent", async (message, data) => {
     let userSession = await getUserSession(message.to);
+    let mobileSocketId = await getUserTokens(message.from);
+    let appSocketId = await getUserSession(message.from);
     // console.log(userSession);
 
     if (userSession) {
@@ -47,8 +52,15 @@ io.on("connection", (socket) => {
         messageTag: "new",
       });
       if (create) {
-        socket.to(userSession).emit("receive-message", message, data);
+        socket
+          .to(userSession)
+          .to(await getUserTokens(message.to))
+          .emit("receive-message", message, data);
         socket.emit("demo", message.from, data);
+
+        io.to(mobileSocketId)
+          .to(appSocketId)
+          .emit("demoBroadcast", message.from, data);
       }
     } else {
       let create = await createMessage({
@@ -59,6 +71,11 @@ io.on("connection", (socket) => {
 
       if (create) {
         socket.emit("demo", message.from, data);
+
+        io.to(mobileSocketId)
+          .to(appSocketId)
+          .emit("demoBroadcast", message.from, data);
+
         console.log("message sent successfully");
       }
     }
@@ -109,6 +126,13 @@ io.on("connection", (socket) => {
 io.use(async (socket, next) => {
   let today = new Date();
   let time = today.getHours() + ":" + today.getMinutes();
+  let userIdGroup = socket.request._query["userId"];
+
+  /*
+  If user connects to the app via web App
+  socket.io assigns the web app an id
+  and stores the id to the database
+  */
   try {
     await updateUserActivity({
       userId: socket.request._query["userId"],
@@ -121,7 +145,6 @@ io.use(async (socket, next) => {
     );
     if (messageUpdate) {
       const userSession = await getUserSession(messageUpdate[0].from);
-
       if (userSession) {
         io.to(userSession).emit("user_receive_sent_message", {
           message: "Hello World",
@@ -134,6 +157,22 @@ io.use(async (socket, next) => {
     // console.log("Error failed to assign token to user");
     return;
   }
+
+  /*
+  If user connects to the app via Mobile App
+  socket.io assigns the mobile app an id
+  and stores the id to the database
+  */
+  try {
+    await updateMobileId({
+      userId: socket.request._query["mobileId"],
+      socketId: socket.id,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  // console.log(`message from mobile ${socket.request._query["userId"]}`);
 
   // join users to groups
 
@@ -150,6 +189,24 @@ io.use(async (socket, next) => {
       let rooms = groupCollection;
 
       socket.join(rooms);
+      socket.join(userIdGroup);
+    }
+  } else if (
+    mongoose.Types.ObjectId.isValid(socket.request._query["mobileId"])
+  ) {
+    console.log("mobile phone just entered");
+    let userGroups = await getUserGroups(socket.request._query["mobileId"]);
+    let groupCollection = [];
+    if (userGroups) {
+      userGroups.map((e) => {
+        groupCollection.push(e.groupName);
+        return groupCollection;
+      });
+
+      let rooms = groupCollection;
+
+      socket.join(rooms);
+      socket.join(userIdGroup);
     }
   } else {
     console.log("Failed to render");
@@ -157,7 +214,7 @@ io.use(async (socket, next) => {
 });
 
 //Middleware
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -176,7 +233,7 @@ app.use(
 );
 app.use("/public/audio", express.static(__dirname + "/public/audio"));
 app.use("/Templates/404", express.static(__dirname + "/Templates/404"));
-
+app.use(bodyParser.urlencoded({ extended: true }));
 //Routes
 app.use(`${process.env.API_URL}/users`, User);
 app.use(`${process.env.API_URL}/chat`, Messages);

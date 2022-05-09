@@ -9,6 +9,8 @@ const User = mongoose.model("User", UserSchema);
 const { uploadObject } = require("./awsS3");
 
 const createGroup = async (groupBody, cb) => {
+  console.log(groupBody);
+  return;
   let { description, groupUsers, groupImage, created_by, Uid } = groupBody;
 
   let newPath = `public/userProfiles/${Uid}.png`;

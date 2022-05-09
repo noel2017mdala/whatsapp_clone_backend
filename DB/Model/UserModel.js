@@ -420,6 +420,39 @@ const updateUserActivity = async (socketData) => {
   }
 };
 
+const updateMobileId = async (mobileData) => {
+  if (mongoose.Types.ObjectId.isValid(mobileData.userId)) {
+    let id = mobileData.userId;
+    const updateMobile = await User.findByIdAndUpdate(
+      id,
+      {
+        mobileSocketId: {
+          userId: id,
+          mobileSocketId: mobileData.socketId,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (updateMobile) {
+      console.log("Mobile socketId updated successfully");
+    }
+  }
+};
+
+const getUserTokens = async (id) => {
+  const user = await User.findById(id);
+  let userMobileId = user.mobileSocketId.map((e) => {
+    return e.mobileSocketId;
+  });
+
+  if (userMobileId) {
+    return userMobileId;
+  }
+};
+
 const updateUserNewMessages = async (id) => {
   const getMessages = await Messages.find({ to: id, messageStatus: "sent" });
   let data = Promise.all(
@@ -798,6 +831,8 @@ module.exports = {
   updateProfile,
   getUserData,
   updateProfileWithImage,
+  updateMobileId,
+  getUserTokens,
 };
 
 /*
