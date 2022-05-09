@@ -84,6 +84,8 @@ const validateCreateUser = (data) => {
 };
 userRouter.post("/createUser", async (req, res) => {
   let body = req.body;
+  console.log(body);
+  return;
   let createUserValidator = validateCreateUser(body);
 
   if (createUserValidator) {

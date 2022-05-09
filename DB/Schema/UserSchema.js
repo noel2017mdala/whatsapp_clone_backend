@@ -83,6 +83,12 @@ const User = new Schema({
     default: "Hey there! I am using WhatsApp clone",
   },
 
+  mobileSocketId: [
+    {
+      type: Object,
+    },
+  ],
+
   dateCreated: {
     type: Date,
     default: Date.now,

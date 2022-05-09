@@ -45,6 +45,7 @@ const upload = multer({
   // Declaring the max size of the uploaded image
   limits: {
     fileSize: 4000000,
+    fieldSize: 2 * 1024 * 1024,
   },
 
   // restricting only images to be uploaded
@@ -55,6 +56,16 @@ const upload = multer({
     cb(undefined, true);
   },
 });
+
+//Mobile file upload
+GroupRouter.post(
+  "/createGroupMobile",
+  upload.single("file"),
+  async (req, res) => {
+    console.log("hello");
+    console.log(req.file);
+  }
+);
 
 GroupRouter.post(
   "/createGroup",
